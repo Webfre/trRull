@@ -5,6 +5,13 @@
 .achievement-total { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
 .achievement-total strong { font-family: var(--heading); font-size: 32px; font-weight: 500; }
 .achievement-total span { font-size: 14px; color: var(--muted); }
+.achievement-modes { display: inline-flex; border: 1px solid var(--ink); margin-top: 23px; padding: 3px; gap: 3px; }
+.achievement-modes button { min-width: 112px; min-height: 43px; padding: 9px 20px; background: transparent; color: var(--muted); font-size: 15px; }
+.achievement-modes button[aria-pressed="true"] { background: var(--ink); color: var(--paper-light); }
+.achievement-modes button:hover:not([aria-pressed="true"]) { background: #dfdaca; color: var(--ink); }
+.achievement-mode-hint { max-width: 670px; color: var(--muted); font-size: 13px; line-height: 1.5; margin: 13px 0 0; }
+.record-completion-help { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 19px; }
+.record-completion-skip { display: block; margin: 16px auto 0; padding: 8px; }
 .achievement-collections { display: grid; gap: 36px; margin-top: 28px; }
 .achievement-collection { padding-bottom: 30px; border-bottom: 1px solid var(--line); }
 .achievement-collection:last-child { border-bottom: 0; }

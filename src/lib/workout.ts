@@ -1,12 +1,12 @@
 export type Category = 'strength' | 'cardio' | 'mobility'
 export type Exercise = { id: string; name: string; unit: string; min: number; max: number; step: number; amounts?: readonly number[]; category: Category; equipment?: string; tip: string }
-export type Pick = { exerciseId: string; amount: number; steps?: number }
+export type Pick = { exerciseId: string; amount: number; steps?: number; bestSet?: number }
 export type Workout = { date: string; picks: Pick[]; done: boolean[]; combo?: { multiplier: 2; poolSize: number } }
 export type Range = { min: number; max: number }
-export type Settings = { enabled: string[]; ranges: Record<string, Range>; sound: boolean }
+export type Settings = { enabled: string[]; ranges: Record<string, Range> }
 export type ClubState = { version: 1; name: string; joined: string; onboardingComplete: boolean; settings: Settings; workouts: Workout[] }
 
-export const CYCLING_DISTANCES = [1, 5, 10, 20] as const
+export const CYCLING_DISTANCES = [1, 5, 10, 20, 30, 40, 50, 60, 75, 100, 125, 150] as const
 
 export const EXERCISES: Exercise[] = [
   { id: 'squat', name: 'Приседания', unit: 'раз', min: 10, max: 30, step: 5, category: 'strength', tip: 'Стопы устойчиво на полу. Двигайся плавно, в комфортной амплитуде.' },
@@ -48,7 +48,7 @@ export function previousDay(day: string): string {
 }
 
 export function initialState(): ClubState {
-  return { version: 1, name: 'Атлет', joined: localDate(), onboardingComplete: false, settings: { enabled: EXERCISES.filter(e => !e.equipment).map(e => e.id), ranges: {}, sound: false }, workouts: [] }
+  return { version: 1, name: 'Атлет', joined: localDate(), onboardingComplete: false, settings: { enabled: EXERCISES.filter(e => !e.equipment).map(e => e.id), ranges: {} }, workouts: [] }
 }
 
 export function isComplete(workout?: Workout): boolean {
@@ -98,13 +98,16 @@ export function beginDailyWorkout(state: ClubState, date: string, random: () => 
   return { state: { ...state, workouts: [...state.workouts, rollWorkout(state.settings, date, random)] }, created: true }
 }
 
-export function finishExercise(state: ClubState, date: string, index: number, steps?: number): ClubState {
+export function finishExercise(state: ClubState, date: string, index: number, steps?: number, bestSet?: number): ClubState {
   const workout = state.workouts.find(workout => workout.date === date)
   if (!workout || !Number.isInteger(index) || index < 0 || index > 2 || workout.done[index]) return state
   if (steps !== undefined && (!Number.isInteger(steps) || steps < 0 || steps > 100_000)) return state
+  const pick = workout.picks[index]
+  const recordStep = pick.exerciseId === 'cycling' ? .1 : 1
+  if (bestSet !== undefined && (!Number.isFinite(bestSet) || bestSet <= 0 || bestSet > pick.amount || Math.abs(bestSet / recordStep - Math.round(bestSet / recordStep)) > .000001)) return state
   return { ...state, workouts: state.workouts.map(w => w.date === date ? {
     ...w,
-    picks: w.picks.map((pick, i) => i === index && pick.exerciseId === 'walk' && steps ? { ...pick, steps } : pick),
+    picks: w.picks.map((pick, i) => i !== index ? pick : { ...pick, ...(pick.exerciseId === 'walk' && steps ? { steps } : {}), ...(!['walk', 'stretch'].includes(pick.exerciseId) && bestSet !== undefined ? { bestSet: Math.round(bestSet * 10) / 10 } : {}) }),
     done: w.done.map((done, i) => i === index || done),
   } : w) }
 }
@@ -145,12 +148,14 @@ export function parseState(raw: string | null): ClubState {
         const replacement = replacementId ? getExercise(replacementId) : undefined
         const pick: Pick = { exerciseId: replacement?.id ?? p.exerciseId, amount: replacement ? replacement.amounts?.[0] ?? Math.max(replacement.min, Math.min(replacement.max, p.amount)) : p.amount }
         if (pick.exerciseId === 'walk' && Number.isInteger(p.steps) && p.steps! > 0 && p.steps! <= 100_000) pick.steps = p.steps
+        const recordStep = pick.exerciseId === 'cycling' ? .1 : 1
+        if (w.done[index] === true && !replacement && !['walk', 'stretch'].includes(pick.exerciseId) && Number.isFinite(p.bestSet) && p.bestSet! > 0 && p.bestSet! <= pick.amount && Math.abs(p.bestSet! / recordStep - Math.round(p.bestSet! / recordStep)) < .000001) pick.bestSet = Math.round(p.bestSet! * 10) / 10
         return pick
       }), done: w.done.map((d: unknown) => d === true), ...(combo ? { combo: { multiplier: 2 as const, poolSize: w.combo.poolSize } } : {}) })
     }
     const joined = [validDay(value.joined) ? value.joined : fallback.joined, fallback.joined, ...workouts.map(workout => workout.date)].sort()[0]
     // Existing members have already visited the app; introduce settings only to new visitors.
     const onboardingComplete = value.onboardingComplete !== false
-    return { version: 1, name: name || fallback.name, joined, onboardingComplete, settings: { enabled: enabled.length ? enabled : fallback.settings.enabled, ranges, sound: value.settings?.sound === true }, workouts }
+    return { version: 1, name: name || fallback.name, joined, onboardingComplete, settings: { enabled: enabled.length ? enabled : fallback.settings.enabled, ranges }, workouts }
   } catch { return fallback }
 }

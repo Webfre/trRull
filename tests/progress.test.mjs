@@ -110,13 +110,19 @@ test('new exercises migrate settings and today’s uncompleted picks without rew
   assert.deepEqual(parseState(JSON.stringify(restored)), restored)
 })
 
-test('cycling draws only 1, 5, 10 or 20 km and respects the selected distance range', () => {
+test('cycling keeps default distances moderate and accepts configured rides up to 150 km', () => {
   const settings = { enabled: ['cycling'], ranges: {}, sound: false }
   const seen = new Set()
   for (const draw of [0, .25, .5, .99999]) {
     for (const pick of rollWorkout(settings, today, () => draw).picks) seen.add(pick.amount)
   }
-  assert.deepEqual([...seen], [...CYCLING_DISTANCES])
+  assert.deepEqual([...seen], [1, 5, 10, 20])
+  settings.ranges.cycling = { min: 5, max: 150 }
+  const longSeen = new Set()
+  const available = CYCLING_DISTANCES.filter(amount => amount >= 5)
+  for (let index = 0; index < available.length; index++) for (const pick of rollWorkout(settings, today, () => (index + .1) / available.length).picks) longSeen.add(pick.amount)
+  assert.deepEqual([...longSeen], available)
+  assert.deepEqual(parseState(JSON.stringify({ ...initialState(), settings })).settings.ranges.cycling, { min: 5, max: 150 })
   settings.ranges.cycling = { min: 5, max: 10 }
   assert.ok(rollWorkout(settings, today, () => 0).picks.every(pick => pick.amount === 5))
   assert.ok(rollWorkout(settings, today, () => .99999).picks.every(pick => pick.amount === 10))

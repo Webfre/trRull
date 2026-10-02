@@ -14,7 +14,7 @@ export default function SettingsForm({ settings, onSave, onCancel, intro, saveLa
     for (const exercise of EXERCISES) {
       const range = draft.ranges[exercise.id] ?? exercise
       if (exercise.amounts && (!exercise.amounts.includes(range.min) || !exercise.amounts.includes(range.max))) {
-        setError(`${exercise.name}: выбери дистанции 1, 5, 10 или 20 км.`)
+        setError(`${exercise.name}: выбери минимальную и максимальную дистанцию из списка.`)
         return
       }
       if (!Number.isInteger(range.min) || !Number.isInteger(range.max) || range.min < 1 || range.max > 300 || range.min > range.max) {

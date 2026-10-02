@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Award, CalendarDays, Check, ChevronRight, Dumbbell, Flame, Pencil, Sparkles, Trophy, X } from 'lucide-react'
-import { getExercise, STORAGE_KEY, beginDailyWorkout, finishExercise, initialState, isComplete, localDate, parseState, previousDay, stats, type ClubState, type Settings } from './lib/workout'
+import { Award, CalendarDays, Check, ChevronRight, Dumbbell, Flame, Flag, Pencil, Sparkles, Trophy, X } from 'lucide-react'
+import { getExercise, STORAGE_KEY, beginDailyWorkout, finishExercise, initialState, isComplete, localDate, parseState, previousDay, stats, type ClubState, type Pick, type Settings } from './lib/workout'
 import Modal from './components/Modal'
 import SettingsForm from './components/SettingsForm'
 import SettingsWelcome from './components/SettingsWelcome'
@@ -8,12 +8,16 @@ import SlotMachine from './components/SlotMachine'
 import ComboConfetti from './components/ComboConfetti'
 import CoachCompanion from './components/CoachCompanion'
 import AchievementsPage from './components/AchievementsPage'
+import ChallengePage from './components/ChallengePage'
 import WalkingCompletion from './components/WalkingCompletion'
+import RecordCompletion from './components/RecordCompletion'
+import { chime } from './lib/sound'
 import CalendarHistory from './components/CalendarHistory'
 import { clubLevel } from './lib/levels'
 import { achievementCollections, achievementSummary } from './lib/achievements'
+import { CHALLENGE_KEY, challengeSummary, initialChallengeState, parseChallengeState } from './lib/challenge'
 
-type View = 'workout' | 'progress' | 'achievements'
+type View = 'workout' | 'progress' | 'achievements' | 'challenge'
 type ModalType = 'profile' | 'settings' | 'welcome' | 'help' | 'tomorrow' | 'success' | 'calendar' | null
 const mascotUrl = `${import.meta.env.BASE_URL}assets/coach.png`
 
@@ -21,22 +25,8 @@ function readState() {
   try { return parseState(localStorage.getItem(STORAGE_KEY)) } catch { return initialState() }
 }
 
-function chime() {
-  try {
-    const context = new AudioContext()
-    const gain = context.createGain()
-    gain.connect(context.destination)
-    gain.gain.value = .035
-    ;[392, 494, 587].forEach((frequency, index) => {
-      const oscillator = context.createOscillator()
-      oscillator.type = 'triangle'
-      oscillator.frequency.value = frequency
-      oscillator.connect(gain)
-      oscillator.start(context.currentTime + index * .11)
-      oscillator.stop(context.currentTime + index * .11 + .14)
-    })
-    setTimeout(() => void context.close(), 800)
-  } catch { /* Audio is optional; a browser without it can still play. */ }
+function readChallengeState() {
+  try { return parseChallengeState(localStorage.getItem(CHALLENGE_KEY)) } catch { return initialChallengeState() }
 }
 
 function remainingToday(now: Date) {
@@ -47,6 +37,7 @@ function remainingToday(now: Date) {
 
 export default function App() {
   const [state, setState] = useState<ClubState>(readState)
+  const [challenges, setChallenges] = useState(readChallengeState)
   const [view, setView] = useState<View>('workout')
   const [modal, setModal] = useState<ModalType>(() => state.onboardingComplete ? null : 'welcome')
   const [spinning, setSpinning] = useState(false)
@@ -55,6 +46,7 @@ export default function App() {
   const [toast, setToast] = useState('')
   const [storageUnavailable, setStorageUnavailable] = useState(false)
   const [walking, setWalking] = useState<{ index: number; date: string; minutes: number } | null>(null)
+  const [record, setRecord] = useState<{ index: number; date: string; pick: Pick } | null>(null)
   const spinTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const spinningRef = useRef(false)
   const stateRef = useRef(state)
@@ -63,14 +55,19 @@ export default function App() {
   const progress = stats(state, today)
   const level = clubLevel(progress.completed)
   const collections = achievementCollections(state, today)
-  const achievementCounts = achievementSummary(collections)
+  const singleCollections = achievementCollections(state, today, 'single')
+  const achievementCounts = achievementSummary([...collections, ...singleCollections])
+  const challengeCounts = challengeSummary(challenges, now.getTime())
 
   useEffect(() => {
     try {
       if (!localStorage.getItem(STORAGE_KEY)) localStorage.setItem(STORAGE_KEY, JSON.stringify(stateRef.current))
     } catch { setStorageUnavailable(true) }
     const timer = setInterval(() => setNow(new Date()), 30_000)
-    const sync = (event: StorageEvent) => { if (event.key === STORAGE_KEY) { const next = parseState(event.newValue); stateRef.current = next; setState(next) } }
+    const sync = (event: StorageEvent) => {
+      if (event.key === STORAGE_KEY || event.key === null) { const next = parseState(event.newValue); stateRef.current = next; setState(next) }
+      if (event.key === CHALLENGE_KEY || event.key === null) setChallenges(parseChallengeState(event.newValue))
+    }
     const wake = () => { if (document.visibilityState === 'visible') setNow(new Date()) }
     window.addEventListener('storage', sync)
     document.addEventListener('visibilitychange', wake)
@@ -98,6 +95,7 @@ export default function App() {
 
   function spin() {
     if (spinningRef.current) return
+    chime()
     const date = localDate()
     setNow(new Date())
     const latest = currentState()
@@ -113,12 +111,11 @@ export default function App() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { reveal(); return }
     spinningRef.current = true
     setSpinning(true)
-    if (latest.settings.sound) chime()
     spinTimer.current = setTimeout(() => {
       spinningRef.current = false
       setSpinning(false)
       reveal()
-      if (latest.settings.sound) chime()
+      chime()
     }, 2800)
   }
 
@@ -128,17 +125,20 @@ export default function App() {
     if (!active || active.done[index] || spinningRef.current) return
     if (active.picks[index].exerciseId === 'walk') {
       setWalking({ index, date, minutes: active.picks[index].amount })
+    } else if (active.picks[index].exerciseId !== 'stretch') {
+      setRecord({ index, date, pick: active.picks[index] })
     } else complete(index)
   }
 
-  function complete(index: number, steps?: number) {
+  function complete(index: number, steps?: number, bestSet?: number) {
     const latest = currentState()
     const date = localDate()
     const active = latest.workouts.find(w => w.date === date)
     if (!active || active.done[index] || spinningRef.current) return
-    const next = finishExercise(latest, date, index, steps)
+    const next = finishExercise(latest, date, index, steps, bestSet)
+    if (next === latest) return
     save(next)
-    if (isComplete(next.workouts.find(w => w.date === date))) { setModal('success'); if (latest.settings.sound) chime() }
+    if (isComplete(next.workouts.find(w => w.date === date))) { setModal('success'); chime() }
     else setToast('Есть! Ещё один шаг к сильной привычке.')
   }
 
@@ -160,14 +160,15 @@ export default function App() {
       <nav className="main-nav" aria-label="Главная навигация">
         <button className={view === 'workout' ? 'nav-active' : ''} aria-current={view === 'workout' ? 'page' : undefined} onClick={() => setView('workout')}><Dumbbell size={17} /><span>Тренировка</span></button>
         <button className={view === 'achievements' ? 'nav-active' : ''} aria-current={view === 'achievements' ? 'page' : undefined} onClick={() => setView('achievements')}><Trophy size={17} /><span>Достижения</span></button>
+        <button className={view === 'challenge' ? 'nav-active' : ''} aria-current={view === 'challenge' ? 'page' : undefined} onClick={() => setView('challenge')}><Flag size={17} /><span>Челлендж</span></button>
       </nav>
       <button className="header-profile" aria-current={view === 'progress' ? 'page' : undefined} aria-label="Открыть профиль" onClick={() => setView('progress')}><span className="profile-initial">{state.name.charAt(0).toUpperCase()}</span><span>{state.name}</span><ChevronRight size={16} /></button>
     </header>
 
     <main id="main" className="page-container">
-      {view !== 'achievements' && <h1 className="sr-only">{view === 'workout' ? 'Тренировка' : 'Профиль'}</h1>}
+      {(view === 'workout' || view === 'progress') && <h1 className="sr-only">{view === 'workout' ? 'Тренировка' : 'Профиль'}</h1>}
 
-      {view === 'achievements' ? <AchievementsPage collections={collections} /> : <div className={`dashboard-grid ${view === 'workout' ? 'home-layout' : 'profile-layout'}`}>
+      {view === 'challenge' ? <ChallengePage imageUrl={mascotUrl} onExit={() => setView('workout')} initialValue={challenges} onChange={setChallenges} /> : view === 'achievements' ? <AchievementsPage collections={collections} singleCollections={singleCollections} /> : <div className={`dashboard-grid ${view === 'workout' ? 'home-layout' : 'profile-layout'}`}>
         {view === 'progress' && <aside className="profile-sidebar">
           <section className="membership-card" aria-label="Профиль атлета">
             <div className="member-identity"><div className="member-avatar"><Dumbbell size={32} strokeWidth={1.5} /><span>★</span></div><h3>{state.name}</h3><button className="edit-profile" aria-label="Изменить имя" onClick={() => setModal('profile')}><Pencil size={14} /></button><div className="member-rank">{level.current.nickname}</div></div>
@@ -179,8 +180,8 @@ export default function App() {
         </aside>}
 
         {view === 'workout' ? <>
-          <SlotMachine workout={workout} spinning={spinning} sound={state.settings.sound} onSpin={spin} onSound={() => { const latest = currentState(); save({ ...latest, settings: { ...latest.settings, sound: !latest.settings.sound } }) }} onHelp={() => setModal('help')} onSettings={() => setModal('settings')} onDone={requestCompletion} />
-        </> : <section className="wide-content progress-content"><div className="progress-summary"><div><Flame size={23} /><strong>{progress.best}<small>дней</small></strong><span>Лучшая серия</span></div><div><Dumbbell size={23} /><strong>{progress.completed}<small>дней</small></strong><span>Тренировок закрыто</span></div><div><Award size={23} /><strong>{achievementCounts.unlocked}<small>из {achievementCounts.total}</small></strong><span>Наград получено</span></div></div>
+          <SlotMachine workout={workout} spinning={spinning} onSpin={spin} onHelp={() => setModal('help')} onSettings={() => setModal('settings')} onDone={requestCompletion} />
+        </> : <section className="wide-content progress-content"><div className="progress-summary"><div><Flame size={23} /><strong>{progress.best}<small>дней</small></strong><span>Лучшая серия</span></div><div><Dumbbell size={23} /><strong>{progress.completed}<small>дней</small></strong><span>Тренировок закрыто</span></div><div><Award size={23} /><strong>{achievementCounts.unlocked}<small>из {achievementCounts.total}</small></strong><span>Наград получено</span></div><div><Flag size={23} /><strong>{challengeCounts.completed}<small>из {challengeCounts.started}</small></strong><span>Челленджи пройдено</span></div></div>
           <h3 className="history-heading">ЖУРНАЛ ТРЕНИРОВОК</h3>{state.workouts.length ? <div className="history-list">{[...state.workouts].sort((a, b) => b.date.localeCompare(a.date)).map(w => <article className="history-row" key={w.date}><div className={`history-icon ${isComplete(w) ? 'finished' : ''}`}>{isComplete(w) ? <Check size={22} /> : <Dumbbell size={22} />}</div><div><h4>{new Date(`${w.date}T12:00:00`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</h4><p>{w.picks.map(p => `${getExercise(p.exerciseId)?.name ?? 'Упражнение'} ${p.amount} ${getExercise(p.exerciseId)?.unit ?? ''}`).join(' · ')}</p></div><span>{w.done.filter(Boolean).length}/3</span></article>)}</div> : <div className="empty-progress"><Dumbbell size={45} strokeWidth={1.2} /><h3>История начинается с тебя</h3><p>Первая тренировка — первая запись.<br />Крути рулетку и начни свою серию.</p><button className="primary-button" onClick={() => setView('workout')}>К тренировке</button></div>}</section>}
       </div>}
 
@@ -195,6 +196,12 @@ export default function App() {
       setWalking(null)
       if (localDate() !== pending.date) { setNow(new Date()); setToast('Начался новый день. Открой сегодняшнюю тренировку.'); return }
       complete(pending.index, steps)
+    }} />}
+    {record && <RecordCompletion pick={record.pick} onClose={() => setRecord(null)} onComplete={bestSet => {
+      const pending = record
+      setRecord(null)
+      if (localDate() !== pending.date) { setNow(new Date()); setToast('Начался новый день. Открой сегодняшнюю тренировку.'); return }
+      complete(pending.index, undefined, bestSet)
     }} />}
     {modal === 'calendar' && <CalendarHistory state={state} today={today} onClose={() => setModal(null)} />}
     {(modal === 'settings' || modal === 'welcome') && <Modal title={modal === 'welcome' ? 'Настроим твою рулетку' : 'Твоя рулетка — твои правила'} onClose={closeSettings} className={`settings-modal ${modal === 'welcome' ? 'welcome-modal' : ''}`}><SettingsForm settings={state.settings} onSave={saveSettings} onCancel={closeSettings} intro={modal === 'welcome' ? <SettingsWelcome imageUrl={mascotUrl} /> : undefined} saveLabel={modal === 'welcome' ? 'Сохранить и начать' : undefined} cancelLabel={modal === 'welcome' ? 'Оставить как есть' : undefined} /></Modal>}

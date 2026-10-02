@@ -69,7 +69,7 @@ test('malformed storage is recovered and invalid exercises and records are dropp
   assert.equal(loaded.name, 'Рома')
   assert.equal(loaded.workouts.length, 1)
   assert.ok(loaded.settings.enabled.length > 0)
-  assert.equal(loaded.settings.sound, false)
+  assert.equal('sound' in loaded.settings, false)
   assert.deepEqual(loaded.settings.ranges, {})
 })
 

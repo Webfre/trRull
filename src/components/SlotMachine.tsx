@@ -1,12 +1,12 @@
 import { useMemo } from 'react'
-import { Check, CircleHelp, Dumbbell, RotateCw, Settings2, Sparkles, Volume2, VolumeX } from 'lucide-react'
+import { Check, CircleHelp, Dumbbell, RotateCw, Settings2, Sparkles } from 'lucide-react'
 import { EXERCISES, getExercise, isComplete, type Workout } from '../lib/workout'
 import ExerciseIcon from './ExerciseIcon'
 
-type Props = { workout?: Workout; spinning: boolean; sound: boolean; onSpin: () => void; onSound: () => void; onHelp: () => void; onSettings: () => void; onDone: (index: number) => void }
+type Props = { workout?: Workout; spinning: boolean; onSpin: () => void; onHelp: () => void; onSettings: () => void; onDone: (index: number) => void }
 const preview = [{ exerciseId: 'squat', amount: 20 }, { exerciseId: 'plank', amount: 30 }, { exerciseId: 'walk', amount: 15 }]
 
-export default function SlotMachine({ workout, spinning, sound, onSpin, onSound, onHelp, onSettings, onDone }: Props) {
+export default function SlotMachine({ workout, spinning, onSpin, onHelp, onSettings, onDone }: Props) {
   const picks = workout?.picks ?? preview
   const completed = isComplete(workout)
   const combo = !!workout?.combo && !spinning
@@ -48,7 +48,6 @@ export default function SlotMachine({ workout, spinning, sound, onSpin, onSound,
           {completed ? <Check size={22} /> : <RotateCw size={22} className={spinning ? 'rotating' : ''} />}
           {spinning ? 'КРУТИМ...' : workout ? 'НА СЕГОДНЯ ВСЁ' : 'КРУТИТЬ РУЛЕТКУ'}
         </button>
-        <button className="sound-button" onClick={onSound} aria-label={sound ? 'Выключить звук' : 'Включить звук'} aria-pressed={sound}>{sound ? <Volume2 size={22} /> : <VolumeX size={22} />}<span>{sound ? 'ЗВУК ВКЛ' : 'ЗВУК ВЫКЛ'}</span></button>
       </div>
     </div>
     {workout && !spinning && <div className="workout-checklist" aria-live="polite">

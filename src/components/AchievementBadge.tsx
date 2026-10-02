@@ -17,7 +17,7 @@ export function BadgeArtwork({ achievement }: { achievement: Achievement }) {
 
 export default function AchievementBadge({ achievement, onSelect }: { achievement: Achievement; onSelect: () => void }) {
   const remaining = Math.max(0, achievement.target - achievement.total)
-  return <button className={`achievement-card ${achievement.unlocked ? 'is-earned' : ''}`} onClick={onSelect} aria-label={`${achievement.name}: ${formatNumber(achievement.target)} ${achievement.unit}. ${RARITIES[achievement.tier]}. ${achievement.unlocked ? 'Открыто' : `Осталось ${formatNumber(remaining)} ${achievement.unit}`}`}>
+  return <button className={`achievement-card ${achievement.unlocked ? 'is-earned' : ''}`} onClick={onSelect} aria-label={`${achievement.name}: ${formatNumber(achievement.target)} ${achievement.unit}${achievement.mode === 'single' ? ' за раз' : ''}. ${RARITIES[achievement.tier]}. ${achievement.unlocked ? 'Открыто' : achievement.mode === 'single' ? `Твой рекорд ${formatNumber(achievement.total)} ${achievement.unit}` : `Осталось ${formatNumber(remaining)} ${achievement.unit}`}`}>
     <BadgeArtwork achievement={achievement} />
     <span className="achievement-target">{formatNumber(achievement.target)} <small>{achievement.unit}</small></span>
     <span className="achievement-rarity">{RARITIES[achievement.tier]}</span>
