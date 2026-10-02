@@ -52,7 +52,6 @@ export default function SlotMachine({ workout, spinning, sound, onSpin, onSound,
       </div>
       <div className="machine-bottom"><span>1 ДЕНЬ = 1 ПОПЫТКА</span><span>{workout ? `НОВАЯ ЧЕРЕЗ ${remaining}` : 'ТВОЙ ЕЖЕДНЕВНЫЙ ПОДХОД'}</span></div>
     </div>
-    <div className="roulette-footnote"><span className="tiny-diamond">◆</span>{workout ? 'Отмечай упражнения ниже. Каждое выполненное — уже победа.' : 'Никаких сложных планов. Крути, выполняй, возвращайся завтра.'}</div>
     {workout && !spinning && <div className="workout-checklist" aria-live="polite">
       {workout.picks.map((pick, index) => {
         const exercise = EXERCISES.find(e => e.id === pick.exerciseId)!
