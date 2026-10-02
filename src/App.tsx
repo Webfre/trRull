@@ -1,13 +1,18 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Award, BadgeCheck, CalendarDays, Check, ChevronRight, Dumbbell, Flame, History, LockKeyhole, Medal, Pencil, Settings2, ShieldCheck, Sparkles, Ticket, Trophy, X } from 'lucide-react'
-import { EXERCISES, STORAGE_KEY, beginDailyWorkout, finishExercise, initialState, isComplete, localDate, parseState, previousDay, stats, type ClubState, type Settings } from './lib/workout'
+import { Award, CalendarDays, Check, ChevronRight, Dumbbell, Flame, Pencil, Sparkles, Trophy, X } from 'lucide-react'
+import { getExercise, STORAGE_KEY, beginDailyWorkout, finishExercise, initialState, isComplete, localDate, parseState, previousDay, stats, type ClubState, type Settings } from './lib/workout'
 import Modal from './components/Modal'
 import SettingsForm from './components/SettingsForm'
 import SlotMachine from './components/SlotMachine'
 import CoachCompanion from './components/CoachCompanion'
+import AchievementsPage from './components/AchievementsPage'
+import WalkingCompletion from './components/WalkingCompletion'
+import CalendarHistory from './components/CalendarHistory'
+import { clubLevel } from './lib/levels'
+import { achievementCollections, achievementSummary } from './lib/achievements'
 
-type View = 'workout' | 'progress'
-type ModalType = 'profile' | 'settings' | 'help' | 'tomorrow' | 'success' | null
+type View = 'workout' | 'progress' | 'achievements'
+type ModalType = 'profile' | 'settings' | 'help' | 'tomorrow' | 'success' | 'calendar' | null
 const mascotUrl = `${import.meta.env.BASE_URL}assets/coach.png`
 
 function readState() {
@@ -46,14 +51,21 @@ export default function App() {
   const [now, setNow] = useState(new Date())
   const [toast, setToast] = useState('')
   const [storageUnavailable, setStorageUnavailable] = useState(false)
+  const [walking, setWalking] = useState<{ index: number; date: string; minutes: number } | null>(null)
   const spinTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const spinningRef = useRef(false)
   const stateRef = useRef(state)
   const today = localDate(now)
   const workout = state.workouts.find(w => w.date === today)
   const progress = stats(state, today)
+  const level = clubLevel(progress.completed)
+  const collections = achievementCollections(state, today)
+  const achievementCounts = achievementSummary(collections)
 
   useEffect(() => {
+    try {
+      if (!localStorage.getItem(STORAGE_KEY)) localStorage.setItem(STORAGE_KEY, JSON.stringify(stateRef.current))
+    } catch { setStorageUnavailable(true) }
     const timer = setInterval(() => setNow(new Date()), 30_000)
     const sync = (event: StorageEvent) => { if (event.key === STORAGE_KEY) { const next = parseState(event.newValue); stateRef.current = next; setState(next) } }
     const wake = () => { if (document.visibilityState === 'visible') setNow(new Date()) }
@@ -95,12 +107,21 @@ export default function App() {
     }, 2800)
   }
 
-  function complete(index: number) {
+  function requestCompletion(index: number) {
+    const date = localDate()
+    const active = currentState().workouts.find(workout => workout.date === date)
+    if (!active || active.done[index] || spinningRef.current) return
+    if (active.picks[index].exerciseId === 'walk') {
+      setWalking({ index, date, minutes: active.picks[index].amount })
+    } else complete(index)
+  }
+
+  function complete(index: number, steps?: number) {
     const latest = currentState()
     const date = localDate()
     const active = latest.workouts.find(w => w.date === date)
     if (!active || active.done[index] || spinningRef.current) return
-    const next = finishExercise(latest, date, index)
+    const next = finishExercise(latest, date, index, steps)
     save(next)
     if (isComplete(next.workouts.find(w => w.date === date))) { setModal('success'); if (latest.settings.sound) chime() }
     else setToast('Есть! Ещё один шаг к сильной привычке.')
@@ -112,51 +133,49 @@ export default function App() {
     setToast('Настройки сохранены. Следующая прокрутка — по твоим правилам.')
   }
 
-  const challenges = [
-    { name: 'Первый подход', text: 'Закрой первую тренировку', value: progress.completed, target: 1, Icon: Medal },
-    { name: 'Поймал ритм', text: 'Три дня без пропусков', value: progress.best, target: 3, Icon: Flame },
-    { name: 'Железная неделя', text: 'Семь тренировок в копилке', value: progress.completed, target: 7, Icon: ShieldCheck },
-    { name: 'Легенда подвала', text: 'Тридцать тренировок. Уважение.', value: progress.completed, target: 30, Icon: Trophy },
-  ]
-
   return <>
     <a className="skip-link" href="#main">К тренировке</a>
     <header className="site-header">
       <button className="brand" aria-label="Gym Roulette — главная" onClick={() => setView('workout')}><span className="brand-mark"><Dumbbell size={31} strokeWidth={2.5} /></span><span className="brand-wordmark">GYM<span>ROULETTE<span className="brand-period">®</span></span></span></button>
       <nav className="main-nav" aria-label="Главная навигация">
         <button className={view === 'workout' ? 'nav-active' : ''} aria-current={view === 'workout' ? 'page' : undefined} onClick={() => setView('workout')}><Dumbbell size={17} /><span>Тренировка</span></button>
+        <button className={view === 'achievements' ? 'nav-active' : ''} aria-current={view === 'achievements' ? 'page' : undefined} onClick={() => setView('achievements')}><Trophy size={17} /><span>Достижения</span></button>
       </nav>
-      <button className="header-profile" aria-label="Открыть профиль" onClick={() => setView('progress')}><span className="profile-initial">{state.name.charAt(0).toUpperCase()}</span><span>{state.name}</span><ChevronRight size={16} /></button>
+      <button className="header-profile" aria-current={view === 'progress' ? 'page' : undefined} aria-label="Открыть профиль" onClick={() => setView('progress')}><span className="profile-initial">{state.name.charAt(0).toUpperCase()}</span><span>{state.name}</span><ChevronRight size={16} /></button>
     </header>
 
     <main id="main" className="page-container">
-      <h1 className="sr-only">{view === 'workout' ? 'Тренировка' : 'Профиль'}</h1>
+      {view !== 'achievements' && <h1 className="sr-only">{view === 'workout' ? 'Тренировка' : 'Профиль'}</h1>}
 
-      <div className="dashboard-grid">
-        <aside className="profile-sidebar">
-          <section className="membership-card" aria-labelledby="membership-title">
-            <div className="card-topline"><h2 id="membership-title">КЛУБНАЯ КАРТА</h2><Ticket size={17} /></div>
-            <div className="member-identity"><div className="member-avatar"><Dumbbell size={32} strokeWidth={1.5} /><span>★</span></div><h3>{state.name}</h3><button className="edit-profile" aria-label="Изменить имя" onClick={() => setModal('profile')}><Pencil size={14} /></button><div className="member-rank">{progress.completed >= 30 ? 'ЛЕГЕНДА' : progress.completed >= 5 ? 'СВОЙ В ЗАЛЕ' : 'НОВИЧОК В ЗАЛЕ'}</div></div>
-            <div className="member-stats"><div><span><Flame size={17} />Серия</span><strong>{progress.streak}<small> дн.</small></strong></div><div><span><Dumbbell size={17} />Тренировки</span><strong>{progress.completed}</strong></div><div><span><Check size={17} />Упражнения</span><strong>{progress.exercises}</strong></div></div>
-            <div className="member-level"><div><span>{progress.completed >= 30 ? 'Ты — легенда клуба' : 'До нового уровня'}</span><strong>{Math.min(progress.completed, progress.completed < 5 ? 5 : 30)}/{progress.completed < 5 ? 5 : 30}</strong></div><div className="progress-track"><span style={{ width: `${Math.min(100, progress.completed / (progress.completed < 5 ? 5 : 30) * 100)}%` }} /></div></div>
+      {view === 'achievements' ? <AchievementsPage collections={collections} /> : <div className={`dashboard-grid ${view === 'workout' ? 'home-layout' : 'profile-layout'}`}>
+        {view === 'progress' && <aside className="profile-sidebar">
+          <section className="membership-card" aria-label="Профиль атлета">
+            <div className="member-identity"><div className="member-avatar"><Dumbbell size={32} strokeWidth={1.5} /><span>★</span></div><h3>{state.name}</h3><button className="edit-profile" aria-label="Изменить имя" onClick={() => setModal('profile')}><Pencil size={14} /></button><div className="member-rank">{level.current.nickname}</div></div>
+            <div className="member-stats"><div><span><Flame size={17} />Серия</span><strong>{progress.streak}<small> дн.</small></strong></div><div><span><Dumbbell size={17} />Тренировки</span><strong>{progress.completed}</strong></div></div>
+            <div className="member-level"><div><span>Уровень {level.current.level} / 20</span><strong>{level.next ? `ещё ${level.remaining}` : 'MAX'}</strong></div><div className="progress-track" role="progressbar" aria-label="Прогресс до следующего уровня" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(level.progress)}><span style={{ width: `${level.progress}%` }} /></div><p>{level.next ? `На ${level.next.days}-й тренировке: ${level.next.nickname}` : 'Высший ранг. Год в деле!'}</p></div>
           </section>
 
-          <section className="week-card" aria-labelledby="week-title"><div className="card-topline"><h2 id="week-title">ТВОЯ НЕДЕЛЯ</h2><CalendarDays size={17} /></div><Week state={state} today={today} /><p>{progress.streak ? `Держишь темп уже ${progress.streak} дн. Так держать!` : 'Начни сегодня. Продолжи завтра.'}</p></section>
-          <button className="settings-link" onClick={() => setModal('settings')}><Settings2 size={17} /><span>Настроить рулетку</span><ChevronRight size={15} /></button>
-        </aside>
+          <section className="week-card" aria-label="Твоя неделя"><button className="week-calendar-open" onClick={() => setModal('calendar')} aria-label="Твоя неделя — открыть календарь и статистику"><span className="card-topline"><strong>ТВОЯ НЕДЕЛЯ</strong><CalendarDays size={17} /></span><Week state={state} today={today} /><span className="week-caption">{progress.streak ? `Держишь темп уже ${progress.streak} дн.` : 'Открыть календарь'} <ChevronRight size={12} /></span></button></section>
+        </aside>}
 
         {view === 'workout' ? <>
-          <SlotMachine workout={workout} spinning={spinning} sound={state.settings.sound} onSpin={spin} onSound={() => { const latest = currentState(); save({ ...latest, settings: { ...latest.settings, sound: !latest.settings.sound } }) }} onHelp={() => setModal('help')} onDone={complete} />
-        </> : <section className="wide-content progress-content"><div className="content-heading"><div><span className="eyebrow">ЛИЧНОЕ ДЕЛО АТЛЕТА</span><h2>Твой путь в клубе</h2></div><History size={26} /></div><div className="progress-summary"><div><Flame size={23} /><strong>{progress.best}<small>дней</small></strong><span>Лучшая серия</span></div><div><Dumbbell size={23} /><strong>{progress.completed}<small>дней</small></strong><span>Тренировок закрыто</span></div><div><Award size={23} /><strong>{challenges.filter(c => c.value >= c.target).length}<small>из 4</small></strong><span>Наград получено</span></div></div>
-          <section className="challenges-section" aria-labelledby="challenges-title"><div className="challenges-heading"><div><span className="eyebrow">ЗАРАБОТАЙ СВОЁ УВАЖЕНИЕ</span><h2 id="challenges-title">МАЛЕНЬКИЕ ПОБЕДЫ. <span>БОЛЬШОЙ ХАРАКТЕР.</span></h2></div><span className="challenge-count">{challenges.filter(c => c.value >= c.target).length} / 4 НАГРАДЫ</span></div><div className="challenge-grid">{challenges.map(challenge => { const earned = challenge.value >= challenge.target; return <article key={challenge.name} className={`challenge ${earned ? 'earned' : ''}`}><div className="challenge-badge"><challenge.Icon size={29} strokeWidth={1.5} />{earned ? <BadgeCheck className="badge-lock" size={13} /> : <LockKeyhole className="badge-lock" size={12} />}</div><div className="challenge-details"><h3>{challenge.name}</h3><p>{challenge.text}</p><div className="challenge-progress"><div className="progress-track"><span style={{ width: `${Math.min(100, challenge.value / challenge.target * 100)}%` }} /></div><span>{Math.min(challenge.value, challenge.target)}/{challenge.target}</span></div></div></article> })}</div></section>
-          <h3 className="history-heading">ЖУРНАЛ ТРЕНИРОВОК</h3>{state.workouts.length ? <div className="history-list">{[...state.workouts].sort((a, b) => b.date.localeCompare(a.date)).map(w => <article className="history-row" key={w.date}><div className={`history-icon ${isComplete(w) ? 'finished' : ''}`}>{isComplete(w) ? <Check size={22} /> : <Dumbbell size={22} />}</div><div><h4>{new Date(`${w.date}T12:00:00`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</h4><p>{w.picks.map(p => `${EXERCISES.find(e => e.id === p.exerciseId)!.name} ${p.amount}`).join(' · ')}</p></div><span>{w.done.filter(Boolean).length}/3</span></article>)}</div> : <div className="empty-progress"><Dumbbell size={45} strokeWidth={1.2} /><h3>История начинается с тебя</h3><p>Первая тренировка — первая запись.<br />Крути рулетку и начни свою серию.</p><button className="primary-button" onClick={() => setView('workout')}>К тренировке</button></div>}</section>}
-      </div>
+          <SlotMachine workout={workout} spinning={spinning} sound={state.settings.sound} onSpin={spin} onSound={() => { const latest = currentState(); save({ ...latest, settings: { ...latest.settings, sound: !latest.settings.sound } }) }} onHelp={() => setModal('help')} onSettings={() => setModal('settings')} onDone={requestCompletion} />
+        </> : <section className="wide-content progress-content"><div className="progress-summary"><div><Flame size={23} /><strong>{progress.best}<small>дней</small></strong><span>Лучшая серия</span></div><div><Dumbbell size={23} /><strong>{progress.completed}<small>дней</small></strong><span>Тренировок закрыто</span></div><div><Award size={23} /><strong>{achievementCounts.unlocked}<small>из {achievementCounts.total}</small></strong><span>Наград получено</span></div></div>
+          <h3 className="history-heading">ЖУРНАЛ ТРЕНИРОВОК</h3>{state.workouts.length ? <div className="history-list">{[...state.workouts].sort((a, b) => b.date.localeCompare(a.date)).map(w => <article className="history-row" key={w.date}><div className={`history-icon ${isComplete(w) ? 'finished' : ''}`}>{isComplete(w) ? <Check size={22} /> : <Dumbbell size={22} />}</div><div><h4>{new Date(`${w.date}T12:00:00`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</h4><p>{w.picks.map(p => `${getExercise(p.exerciseId)?.name ?? 'Упражнение'} ${p.amount} ${getExercise(p.exerciseId)?.unit ?? ''}`).join(' · ')}</p></div><span>{w.done.filter(Boolean).length}/3</span></article>)}</div> : <div className="empty-progress"><Dumbbell size={45} strokeWidth={1.2} /><h3>История начинается с тебя</h3><p>Первая тренировка — первая запись.<br />Крути рулетку и начни свою серию.</p><button className="primary-button" onClick={() => setView('workout')}>К тренировке</button></div>}</section>}
+      </div>}
 
       {view === 'workout' && <CoachCompanion today={today} imageUrl={mascotUrl} />}
     </main>
 
     {storageUnavailable && <div className="storage-notice" role="alert">Браузер не разрешает сохранить прогресс. Сейчас он доступен только до закрытия страницы.</div>}
     {toast && <div className="toast" role="status"><Check size={18} /><span>{toast}</span><button className="icon-button" aria-label="Закрыть уведомление" onClick={() => setToast('')}><X size={17} /></button></div>}
+    {walking && <WalkingCompletion minutes={walking.minutes} onClose={() => setWalking(null)} onComplete={steps => {
+      const pending = walking
+      setWalking(null)
+      if (localDate() !== pending.date) { setNow(new Date()); setToast('Начался новый день. Открой сегодняшнюю тренировку.'); return }
+      complete(pending.index, steps)
+    }} />}
+    {modal === 'calendar' && <CalendarHistory state={state} today={today} onClose={() => setModal(null)} />}
     {modal === 'settings' && <Modal title="Твоя рулетка — твои правила" onClose={() => setModal(null)} className="settings-modal"><SettingsForm settings={state.settings} onSave={saveSettings} onCancel={() => setModal(null)} /></Modal>}
     {modal === 'profile' && <Modal title="Клубная карта" onClose={() => setModal(null)}><ProfileForm name={state.name} onSave={name => { save({ ...currentState(), name }); setModal(null); setToast('Теперь в клубе тебя знают по имени.') }} /><p className="privacy-note">Имя и прогресс хранятся только в этом браузере. Регистрация не нужна.</p></Modal>}
     {modal === 'help' && <Modal title="Правила нашего клуба" onClose={() => setModal(null)}><div className="rules-list"><div><b>01</b><section><h3>Доверься случаю</h3><p>Одна прокрутка в календарные сутки по времени твоего устройства. Рулетка выбирает три упражнения и объём. Повторы могут совпасть.</p></section></div><div><b>02</b><section><h3>Сделай своё дело</h3><p>Выполни упражнения в удобном порядке и отметь каждое. Все три готовы — тренировка закрыта.</p></section></div><div><b>03</b><section><h3>Вернись завтра</h3><p>Новая попытка появляется в полночь. Собирай тренировки, поддерживай серию и открывай награды.</p></section></div></div><p className="rules-note">Начни с короткой разминки и выбирай посильную нагрузку. Упражнения и диапазоны можно менять в настройках.</p><button className="primary-button full-width" onClick={() => setModal(null)}>Понял. Погнали!</button></Modal>}

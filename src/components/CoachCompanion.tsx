@@ -133,7 +133,6 @@ export default function CoachCompanion({ today, imageUrl }: { today: string; ima
         <p className="coach-line" aria-hidden="true">{visibleSpeech.text.slice(0, characters)}{typing && <span className="coach-caret" />}</p>
         <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{visibleSpeech.text}</p>
       </> : <p className="coach-line">{count >= COACH_DAILY_LIMIT ? 'Три байки уже выдал. Ещё слово — и я в зал!' : 'Псс… Есть одна байка. Нажми на меня.'}</p>}
-      <span className="coach-daily-count">{visibleSpeech?.ending ? 'ТРЕНЕР УШЁЛ НА ТРЕНИРОВКУ' : `${count} / ${COACH_DAILY_LIMIT} на сегодня`}</span>
       {warning && <p className="coach-storage-warning" role="alert">{warning}</p>}
     </div>
     <button className="coach-character" type="button" onClick={() => void talk()} aria-disabled={busy || visibleSpeech?.ending || exiting} aria-label={typing ? 'Показать реплику целиком' : 'Послушать новую байку тренера'}>

@@ -1,10 +1,12 @@
 export type Category = 'strength' | 'cardio' | 'mobility'
-export type Exercise = { id: string; name: string; unit: string; min: number; max: number; step: number; category: Category; equipment?: string; tip: string }
-export type Pick = { exerciseId: string; amount: number }
+export type Exercise = { id: string; name: string; unit: string; min: number; max: number; step: number; amounts?: readonly number[]; category: Category; equipment?: string; tip: string }
+export type Pick = { exerciseId: string; amount: number; steps?: number }
 export type Workout = { date: string; picks: Pick[]; done: boolean[] }
 export type Range = { min: number; max: number }
 export type Settings = { enabled: string[]; ranges: Record<string, Range>; sound: boolean }
 export type ClubState = { version: 1; name: string; joined: string; settings: Settings; workouts: Workout[] }
+
+export const CYCLING_DISTANCES = [1, 5, 10, 20] as const
 
 export const EXERCISES: Exercise[] = [
   { id: 'squat', name: 'Приседания', unit: 'раз', min: 10, max: 30, step: 5, category: 'strength', tip: 'Стопы устойчиво на полу. Двигайся плавно, в комфортной амплитуде.' },
@@ -12,14 +14,26 @@ export const EXERCISES: Exercise[] = [
   { id: 'plank', name: 'Планка', unit: 'сек', min: 20, max: 60, step: 10, category: 'strength', tip: 'Опирайся на предплечья. Дыши спокойно и не прогибай поясницу.' },
   { id: 'walk', name: 'Ходьба', unit: 'мин', min: 10, max: 30, step: 5, category: 'cardio', tip: 'Выбери приятный маршрут и удобный темп. Можно ходить на месте.' },
   { id: 'lunge', name: 'Выпады', unit: 'раз', min: 10, max: 24, step: 2, category: 'strength', tip: 'Чередуй ноги. Число на карточке — общее количество повторений.' },
-  { id: 'bicycle', name: 'Велосипед', unit: 'сек', min: 20, max: 60, step: 10, category: 'strength', tip: 'Лёжа на спине, плавно чередуй ноги. Не тяни голову руками.' },
+  { id: 'cycling', name: 'Велосипед', unit: 'км', min: 1, max: 20, step: 1, amounts: CYCLING_DISTANCES, category: 'cardio', equipment: 'Велосипед', tip: 'Поездка на велосипеде или велотренажёре. Дистанция — по счётчику или трекеру.' },
   { id: 'stretch', name: 'Растяжка', unit: 'мин', min: 2, max: 5, step: 1, category: 'mobility', tip: 'Мягко потяни основные группы мышц без рывков и боли.' },
-  { id: 'bridge', name: 'Ягодичный мост', unit: 'раз', min: 10, max: 30, step: 5, category: 'strength', tip: 'Лёжа на спине, поставь стопы на пол и плавно поднимай таз.' },
+  { id: 'rope', name: 'Скакалка', unit: 'раз', min: 20, max: 100, step: 10, category: 'cardio', tip: 'Невысокие прыжки со скакалкой или её имитацией. Приземляйся мягко.' },
   { id: 'jack', name: 'Джампинг-джек', unit: 'раз', min: 10, max: 30, step: 5, category: 'cardio', tip: 'Приземляйся мягко. Прыжки можно заменить шагами в стороны.' },
-  { id: 'climber', name: 'Скалолаз', unit: 'сек', min: 20, max: 40, step: 10, category: 'cardio', tip: 'Из упора лёжа по очереди подтягивай колени. Начни медленно.' },
+  { id: 'shadowbox', name: 'Бой с тенью', unit: 'сек', min: 30, max: 90, step: 15, category: 'cardio', tip: 'Поочерёдные удары руками перед собой без гантелей, в спокойном темпе.' },
   { id: 'pullup', name: 'Подтягивания', unit: 'раз', min: 2, max: 8, step: 1, category: 'strength', equipment: 'Турник', tip: 'Используй устойчивый турник. Поднимайся без раскачивания.' },
   { id: 'dip', name: 'Брусья', unit: 'раз', min: 3, max: 12, step: 1, category: 'strength', equipment: 'Брусья', tip: 'Опускайся подконтрольно, в комфортной для плеч амплитуде.' },
 ]
+
+// Keep completed legacy records readable without counting them as new exercises.
+const LEGACY_EXERCISES: Exercise[] = [
+  { id: 'bicycle', name: 'Велосипед лёжа', unit: 'сек', min: 20, max: 60, step: 10, category: 'strength', tip: '' },
+  { id: 'bridge', name: 'Ягодичный мост', unit: 'раз', min: 10, max: 30, step: 5, category: 'strength', tip: '' },
+  { id: 'climber', name: 'Скалолаз', unit: 'сек', min: 20, max: 40, step: 10, category: 'cardio', tip: '' },
+]
+const EXERCISE_REPLACEMENTS: Record<string, string> = { bridge: 'rope', climber: 'shadowbox', bicycle: 'cycling' }
+
+export function getExercise(id: string): Exercise | undefined {
+  return EXERCISES.find(exercise => exercise.id === id) ?? LEGACY_EXERCISES.find(exercise => exercise.id === id)
+}
 
 export const STORAGE_KEY = 'gym-roulette-v1'
 export const CATEGORY_LABELS: Record<Category, string> = { strength: 'Сила', cardio: 'Кардио', mobility: 'Гибкость' }
@@ -63,8 +77,11 @@ export function rollWorkout(settings: Settings, date: string, random: () => numb
   const picks = Array.from({ length: 3 }, () => {
     const exercise = pool[Math.floor(random() * pool.length)]
     const range = settings.ranges[exercise.id] ?? exercise
+    const choices = exercise.amounts?.filter(amount => amount >= range.min && amount <= range.max)
     const steps = Math.floor((range.max - range.min) / exercise.step)
-    const amount = range.min + Math.floor(random() * (steps + 1)) * exercise.step
+    const amount = choices?.length
+      ? choices[Math.floor(random() * choices.length)]
+      : exercise.amounts ? exercise.amounts[0] : range.min + Math.floor(random() * (steps + 1)) * exercise.step
     return { exerciseId: exercise.id, amount }
   })
   return { date, picks, done: [false, false, false] }
@@ -75,10 +92,15 @@ export function beginDailyWorkout(state: ClubState, date: string, random: () => 
   return { state: { ...state, workouts: [...state.workouts, rollWorkout(state.settings, date, random)] }, created: true }
 }
 
-export function finishExercise(state: ClubState, date: string, index: number): ClubState {
+export function finishExercise(state: ClubState, date: string, index: number, steps?: number): ClubState {
   const workout = state.workouts.find(workout => workout.date === date)
   if (!workout || !Number.isInteger(index) || index < 0 || index > 2 || workout.done[index]) return state
-  return { ...state, workouts: state.workouts.map(w => w.date === date ? { ...w, done: w.done.map((done, i) => i === index || done) } : w) }
+  if (steps !== undefined && (!Number.isInteger(steps) || steps < 0 || steps > 100_000)) return state
+  return { ...state, workouts: state.workouts.map(w => w.date === date ? {
+    ...w,
+    picks: w.picks.map((pick, i) => i === index && pick.exerciseId === 'walk' && steps ? { ...pick, steps } : pick),
+    done: w.done.map((done, i) => i === index || done),
+  } : w) }
 }
 
 function validDay(value: unknown): value is string {
@@ -94,12 +116,13 @@ export function parseState(raw: string | null): ClubState {
     const value = JSON.parse(raw)
     if (!value || value.version !== 1) return fallback
     const name = typeof value.name === 'string' ? value.name.trim().slice(0, 24) : ''
-    const enabled = Array.isArray(value.settings?.enabled)
-      ? EXERCISES.filter(e => value.settings.enabled.includes(e.id)).map(e => e.id) : fallback.settings.enabled
+    const requested = Array.isArray(value.settings?.enabled)
+      ? value.settings.enabled.map((id: string) => EXERCISE_REPLACEMENTS[id] ?? id) : fallback.settings.enabled
+    const enabled = EXERCISES.filter(e => requested.includes(e.id)).map(e => e.id)
     const ranges: Record<string, Range> = {}
     for (const exercise of EXERCISES) {
       const range = value.settings?.ranges?.[exercise.id]
-      if (range && Number.isInteger(range.min) && Number.isInteger(range.max) && range.min >= 1 && range.max <= 300 && range.min <= range.max) {
+      if (range && Number.isInteger(range.min) && Number.isInteger(range.max) && range.min >= 1 && range.max <= 300 && range.min <= range.max && (!exercise.amounts || (exercise.amounts.includes(range.min) && exercise.amounts.includes(range.max)))) {
         ranges[exercise.id] = { min: range.min, max: range.max }
       }
     }
@@ -107,10 +130,17 @@ export function parseState(raw: string | null): ClubState {
     const workouts: Workout[] = []
     if (Array.isArray(value.workouts)) for (const w of value.workouts) {
       if (!w || !validDay(w.date) || dates.has(w.date) || !Array.isArray(w.picks) || w.picks.length !== 3 || !Array.isArray(w.done) || w.done.length !== 3) continue
-      if (!w.picks.every((p: Pick) => p && EXERCISES.some(e => e.id === p.exerciseId) && Number.isInteger(p.amount) && p.amount > 0 && p.amount <= 300)) continue
+      if (!w.picks.every((p: Pick) => p && getExercise(p.exerciseId) && Number.isInteger(p.amount) && p.amount > 0 && p.amount <= 300)) continue
       dates.add(w.date)
-      workouts.push({ date: w.date, picks: w.picks.map((p: Pick) => ({ exerciseId: p.exerciseId, amount: p.amount })), done: w.done.map((d: unknown) => d === true) })
+      workouts.push({ date: w.date, picks: w.picks.map((p: Pick, index: number) => {
+        const replacementId = w.done[index] === true || w.date < fallback.joined ? undefined : EXERCISE_REPLACEMENTS[p.exerciseId]
+        const replacement = replacementId ? getExercise(replacementId) : undefined
+        const pick: Pick = { exerciseId: replacement?.id ?? p.exerciseId, amount: replacement ? replacement.amounts?.[0] ?? Math.max(replacement.min, Math.min(replacement.max, p.amount)) : p.amount }
+        if (pick.exerciseId === 'walk' && Number.isInteger(p.steps) && p.steps! > 0 && p.steps! <= 100_000) pick.steps = p.steps
+        return pick
+      }), done: w.done.map((d: unknown) => d === true) })
     }
-    return { version: 1, name: name || fallback.name, joined: validDay(value.joined) ? value.joined : fallback.joined, settings: { enabled: enabled.length ? enabled : fallback.settings.enabled, ranges, sound: value.settings?.sound === true }, workouts }
+    const joined = [validDay(value.joined) ? value.joined : fallback.joined, fallback.joined, ...workouts.map(workout => workout.date)].sort()[0]
+    return { version: 1, name: name || fallback.name, joined, settings: { enabled: enabled.length ? enabled : fallback.settings.enabled, ranges, sound: value.settings?.sound === true }, workouts }
   } catch { return fallback }
 }

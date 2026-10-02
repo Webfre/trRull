@@ -1,0 +1,20 @@
+Generated with built-in imagegen; transparent PNG atlas.
+Asset: public/assets/achievement-frames.png
+4 columns × 3 rows; 11 frames in reading order, final cell empty.
+
+Use case: stylized-concept. Asset type: transparent PNG sprite atlas for achievement badge FRAME ART in an old-school gym game, not a UI mockup.
+Create precisely 11 individual empty medal/shield frames arranged in a perfectly regular 4-column by 3-row grid. Canvas aspect ratio 4:3, ideally 2048x1536. All 12 cells are exactly the same square size. Fill cells in reading order; the last cell at bottom-right must be completely empty transparent. Each frame centered on its cell center with equal spacing and safe padding of at least 8% of the cell on every side, no overlap between cells.
+A consistent original visual family: vintage bodybuilding championship enamel medals, thick engraved metal, strong readable silhouette, slightly distressed hand-inked contours, restrained retro game illustration. All frames have an entirely empty transparent circular interior hole centered exactly in the cell for an HTML exercise icon to be placed later. Interior hole diameter approximately 40% of cell width. No central objects, no icon, no emblem in the hole, no text, no numbers, no lettering, no ribbons with writing.
+Eleven stages increase in ornamentation, left to right then top to bottom:
+1. very simple dark iron rounded square ring;
+2. iron circular ring with four small rivets;
+3. warm copper beveled shield frame;
+4. copper shield with short side fins;
+5. antique silver shield with engraved stepped corners;
+6. silver hexagonal frame with small symmetrical leaves;
+7. burnished gold shield with short laurel branches;
+8. gold shield with larger laurel wings and a tiny star on top;
+9. gold and deep red enamel octagonal frame with a small ruby jewel on top;
+10. rich gold and red frame with layered wings and a crown;
+11. legendary ornate blackened gold and ruby frame with a magnificent crown and broad symmetrical laurel ornament, restrained warm highlights.
+Palette unified with an old-school gym app: dark charcoal #282920, antique copper, aged silver, warm gold, deep gym red #ba392c. High quality illustrative metal shading, crisp readable details at 140px size. Similar outer footprint for all badges; higher levels become more ornate inside that footprint. Entire canvas background AND all inner holes must have real alpha transparency. No background pattern, no checkerboard, no floor shadows, no scene, no labels, no page layout. Exactly eleven frames; bottom-right twelfth cell empty.

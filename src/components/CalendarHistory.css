@@ -1,0 +1,42 @@
+.calendar-modal { max-width: min(590px, calc(100vw - 32px)); }
+.calendar-start { font-size: 14px; color: var(--muted); margin-bottom: 18px; }
+.attendance-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); background: var(--paper); }
+.attendance-stats > div { display: flex; flex-direction: column; text-align: center; padding: 13px 8px; border-right: 1px solid var(--line); }
+.attendance-stats > div:last-child { border: none; }
+.attendance-stats strong { font-family: var(--heading); font-weight: 500; font-size: 30px; }
+.attendance-stats strong small { font-size: 18px; }
+.attendance-stats span { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.attendance-verdict { margin: 15px 0 20px; padding: 12px 14px; border-left: 3px solid var(--green); background: #e8eadc; display: flex; flex-direction: column; gap: 5px; }
+.attendance-verdict strong { color: var(--green); font-size: 12px; letter-spacing: 1px; }
+.attendance-verdict span { font-size: 14px; line-height: 1.4; }
+.attendance-verdict.needs-rhythm { background: #ece3d5; border-color: #aa7044; }
+.attendance-verdict.needs-rhythm strong { color: #916039; }
+.calendar-month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.calendar-month-nav h3 { font-family: var(--heading); font-size: 23px; font-weight: 500; text-transform: capitalize; }
+.calendar-month-nav .icon-button { width: 40px; height: 40px; }
+.calendar-month-nav button:disabled { opacity: .3; }
+.calendar-week-labels, .calendar-month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.calendar-week-labels { text-align: center; color: var(--muted); font-size: 12px; margin-bottom: 9px; }
+.calendar-day { min-height: 48px; padding: 6px 2px 3px; display: flex; align-items: center; flex-direction: column; justify-content: center; background: var(--paper); border: 1px solid var(--line); border-radius: 2px; font-size: 15px; }
+.calendar-day-symbol { display: flex; align-items: center; justify-content: center; height: 14px; }
+.calendar-day.complete { background: #e0e7d1; color: #455936; border-color: #b5c3a3; }
+.calendar-day.missed { background: #efe2d8; color: #a06249; border-color: #d8c6b6; }
+.calendar-day.today { border-color: var(--red); }
+.calendar-day.selected { outline: 2px solid var(--ink); outline-offset: 1px; }
+.calendar-day:disabled { color: #b8b5a8; background: transparent; border-color: transparent; }
+.calendar-today-dot { display: block; width: 4px; height: 4px; border-radius: 50%; background: var(--red); }
+.calendar-legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 18px 0; font-size: 12px; color: var(--muted); }
+.calendar-legend > span { display: flex; gap: 5px; align-items: center; }
+.calendar-legend i { width: 8px; height: 8px; border-radius: 50%; }
+.legend-complete { background: var(--green); }.legend-missed { background: #b38466; }.legend-today { background: var(--red); }
+.calendar-day-details { border-top: 1px solid var(--line); padding-top: 16px; }
+.calendar-day-details h3 { font-family: var(--heading); font-size: 22px; font-weight: 500; margin-bottom: 13px; }
+.calendar-day-details > p { font-size: 14px; color: var(--muted); }
+.calendar-day-details ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.calendar-day-details li { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--muted); }
+.calendar-day-details li > span:first-child { display: flex; }
+.calendar-day-details li.done { color: var(--green); }
+.calendar-day-details li strong { margin-left: auto; text-align: right; font-size: 13px; }
+.calendar-day-details li small { display: block; font-weight: 400; font-size: 12px; }
+.calendar-explainer { margin-top: 22px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+@media (max-width: 480px) { .calendar-week-labels, .calendar-month-grid { gap: 4px; }.calendar-day { min-height: 44px; font-size: 14px; }.calendar-month-nav h3 { font-size: 21px; }.calendar-day-details li { font-size: 13px; }.calendar-legend { gap: 10px; } }

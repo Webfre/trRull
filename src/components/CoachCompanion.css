@@ -60,7 +60,7 @@
 
 .coach-line { font-size: 17px; line-height: 1.5; overflow-wrap: anywhere; }
 .has-story .coach-line { min-height: 4.5em; }
-.coach-daily-count { display: block; font-size: 12px; letter-spacing: .3px; color: var(--muted); margin-top: 12px; }
+
 .coach-storage-warning { font-size: 13px; line-height: 1.4; margin-top: 12px; color: var(--red-dark); }
 .coach-caret { display: inline-block; width: 2px; height: 1em; margin-left: 3px; background: var(--red); vertical-align: -.1em; }
 .coach-talking .coach-character img { animation: coach-talk .65s ease-in-out 3; }
