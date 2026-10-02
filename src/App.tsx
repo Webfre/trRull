@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Award, BadgeCheck, CalendarDays, Check, ChevronRight, CircleHelp, Dumbbell, Flame, History, LockKeyhole, Medal, Pencil, Settings2, ShieldCheck, Sparkles, Star, Ticket, Trophy, X, Zap } from 'lucide-react'
-import { CATEGORY_LABELS, EXERCISES, STORAGE_KEY, beginDailyWorkout, finishExercise, initialState, isComplete, localDate, parseState, previousDay, stats, type Category, type ClubState, type Settings } from './lib/workout'
-import ExerciseIcon from './components/ExerciseIcon'
+import { Award, BadgeCheck, CalendarDays, Check, ChevronRight, Dumbbell, Flame, History, LockKeyhole, Medal, Pencil, Settings2, ShieldCheck, Sparkles, Star, Ticket, Trophy, X } from 'lucide-react'
+import { EXERCISES, STORAGE_KEY, beginDailyWorkout, finishExercise, initialState, isComplete, localDate, parseState, previousDay, stats, type ClubState, type Settings } from './lib/workout'
 import Modal from './components/Modal'
 import SettingsForm from './components/SettingsForm'
 import SlotMachine from './components/SlotMachine'
 
-type View = 'workout' | 'exercises' | 'progress'
+type View = 'workout' | 'progress'
 type ModalType = 'profile' | 'settings' | 'help' | 'tomorrow' | 'success' | null
 const mascotUrl = `${import.meta.env.BASE_URL}assets/coach.png`
 
@@ -46,7 +45,6 @@ export default function App() {
   const [now, setNow] = useState(new Date())
   const [toast, setToast] = useState('')
   const [storageUnavailable, setStorageUnavailable] = useState(false)
-  const [filter, setFilter] = useState<Category | 'all'>('all')
   const spinTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const spinningRef = useRef(false)
   const stateRef = useRef(state)
@@ -125,14 +123,14 @@ export default function App() {
     <header className="site-header">
       <button className="brand" aria-label="Gym Roulette — главная" onClick={() => setView('workout')}><span className="brand-mark"><Dumbbell size={31} strokeWidth={2.5} /></span><span className="brand-wordmark">GYM<span>ROULETTE<span className="brand-period">®</span></span></span></button>
       <nav className="main-nav" aria-label="Главная навигация">
-        {([{ id: 'workout', label: 'Тренировка', Icon: Dumbbell }, { id: 'exercises', label: 'Упражнения', Icon: Zap }, { id: 'progress', label: 'Мой прогресс', Icon: Trophy }] as const).map(item => <button key={item.id} className={view === item.id ? 'nav-active' : ''} aria-current={view === item.id ? 'page' : undefined} onClick={() => setView(item.id)}><item.Icon size={17} /><span>{item.label}</span></button>)}
+        <button className={view === 'workout' ? 'nav-active' : ''} aria-current={view === 'workout' ? 'page' : undefined} onClick={() => setView('workout')}><Dumbbell size={17} /><span>Тренировка</span></button>
       </nav>
       <button className="header-profile" aria-label="Открыть профиль" onClick={() => setView('progress')}><span className="profile-initial">{state.name.charAt(0).toUpperCase()}</span><span>{state.name}</span><ChevronRight size={16} /></button>
     </header>
 
     <main id="main" className="page-container">
       <section className="page-heading">
-        <div><div className="eyebrow"><span className="short-rule" />ТВОЙ ЛИЧНЫЙ КЛУБ БЕЗ ОТГОВОРОК</div><h1>{view === 'workout' ? <>УДАЧА РЕШАЕТ. <span>ТЫ ДЕЛАЕШЬ.</span></> : view === 'exercises' ? <>ПРОСТЫЕ ДВИЖЕНИЯ. <span>СИЛЬНЫЙ ТЫ.</span></> : <>КАЖДЫЙ ПОДХОД. <span>В ТВОЮ ПОЛЬЗУ.</span></>}</h1><p>{view === 'workout' ? 'Три случайных упражнения — и ты уже лучше, чем вчера.' : view === 'exercises' ? 'Свой вес, немного места и желание двигаться.' : 'Большая привычка складывается из маленьких побед.'}</p></div>
+        <div><div className="eyebrow"><span className="short-rule" />ТВОЙ ЛИЧНЫЙ КЛУБ БЕЗ ОТГОВОРОК</div><h1>{view === 'workout' ? <>УДАЧА РЕШАЕТ. <span>ТЫ ДЕЛАЕШЬ.</span></> : <>КАЖДЫЙ ПОДХОД. <span>В ТВОЮ ПОЛЬЗУ.</span></>}</h1><p>{view === 'workout' ? 'Три случайных упражнения — и ты уже лучше, чем вчера.' : 'Большая привычка складывается из маленьких побед.'}</p></div>
         <div className="daily-stamp" aria-label="Каждый день — новый шанс"><Star size={17} /><span>КАЖДЫЙ ДЕНЬ</span><strong>НОВЫЙ ШАНС</strong><div>★ ★ ★</div></div>
       </section>
 
@@ -143,7 +141,6 @@ export default function App() {
             <div className="member-identity"><div className="member-avatar"><Dumbbell size={32} strokeWidth={1.5} /><span>★</span></div><h3>{state.name}</h3><button className="edit-profile" aria-label="Изменить имя" onClick={() => setModal('profile')}><Pencil size={14} /></button><div className="member-rank">{progress.completed >= 30 ? 'ЛЕГЕНДА' : progress.completed >= 5 ? 'СВОЙ В ЗАЛЕ' : 'НОВИЧОК В ЗАЛЕ'}</div></div>
             <div className="member-stats"><div><span><Flame size={17} />Серия</span><strong>{progress.streak}<small> дн.</small></strong></div><div><span><Dumbbell size={17} />Тренировки</span><strong>{progress.completed}</strong></div><div><span><Check size={17} />Упражнения</span><strong>{progress.exercises}</strong></div></div>
             <div className="member-level"><div><span>{progress.completed >= 30 ? 'Ты — легенда клуба' : 'До нового уровня'}</span><strong>{Math.min(progress.completed, progress.completed < 5 ? 5 : 30)}/{progress.completed < 5 ? 5 : 30}</strong></div><div className="progress-track"><span style={{ width: `${Math.min(100, progress.completed / (progress.completed < 5 ? 5 : 30) * 100)}%` }} /></div></div>
-            <div className="member-card-bottom"><span>MEMBER OF THE IRON CLUB</span><span className="barcode" aria-hidden="true" /></div>
           </section>
 
           <section className="week-card" aria-labelledby="week-title"><div className="card-topline"><h2 id="week-title">ТВОЯ НЕДЕЛЯ</h2><CalendarDays size={17} /></div><Week state={state} today={today} /><p>{progress.streak ? `Держишь темп уже ${progress.streak} дн. Так держать!` : 'Начни сегодня. Продолжи завтра.'}</p></section>
@@ -153,12 +150,11 @@ export default function App() {
         {view === 'workout' ? <>
           <SlotMachine workout={workout} spinning={spinning} sound={state.settings.sound} onSpin={spin} onSound={() => { const latest = currentState(); save({ ...latest, settings: { ...latest.settings, sound: !latest.settings.sound } }) }} onHelp={() => setModal('help')} onDone={complete} remaining={remainingToday(now)} />
           <aside className="coach-sidebar"><section className="coach-poster"><div className="poster-top"><span>СЛОВО ТРЕНЕРА</span><Star size={15} /></div><div className="coach-speech">{isComplete(workout) ? <>ВОТ ЭТО<br />Я ПОНИМАЮ!</> : <>ЭЙ, БАДДИ.<br />ТВОЙ ВЫХОД!</>}</div><div className="coach-art"><span className="coach-sunburst" aria-hidden="true" /><img src={mascotUrl} width="1122" height="1402" alt="Усатый мультяшный тренер с повязкой на голове показывает большой палец" /></div><div className="coach-quote"><span>«</span><p>{isComplete(workout) ? <>СЕГОДНЯ ТЫ<br />СДЕЛАЛ ДЕЛО.</> : <>ХАРАКТЕР СИЛЬНЕЕ<br />ЛЮБОЙ ОТГОВОРКИ.</>}</p></div></section></aside>
-        </> : view === 'exercises' ? <section className="wide-content exercise-library"><div className="content-heading"><div><span className="eyebrow">АРСЕНАЛ СТАРОЙ ШКОЛЫ</span><h2>Всё, что может выпасть</h2></div><button className="secondary-button" onClick={() => setModal('settings')}><Settings2 size={16} />Настроить</button></div><div className="filter-tabs" role="group" aria-label="Категория упражнений">{(['all', 'strength', 'cardio', 'mobility'] as const).map(category => <button key={category} className={filter === category ? 'selected' : ''} aria-pressed={filter === category} onClick={() => setFilter(category)}>{category === 'all' ? 'Все упражнения' : CATEGORY_LABELS[category]}</button>)}</div><div className="exercise-grid">{EXERCISES.filter(e => filter === 'all' || e.category === filter).map(exercise => { const range = state.settings.ranges[exercise.id] ?? exercise; return <article className={`exercise-card ${!state.settings.enabled.includes(exercise.id) ? 'not-in-pool' : ''}`} key={exercise.id}><div className="exercise-card-top"><ExerciseIcon id={exercise.id} size={34} /><span>{CATEGORY_LABELS[exercise.category]}</span></div><h3>{exercise.name}</h3><strong className="exercise-range">{range.min}–{range.max}<small> {exercise.unit}</small></strong><p>{exercise.tip}</p><div className="exercise-card-bottom">{state.settings.enabled.includes(exercise.id) ? <><Check size={13} />В рулетке</> : <><span className="empty-circle" />Не участвует</>}{exercise.equipment && <span>{exercise.equipment}</span>}</div></article> })}</div></section> : <section className="wide-content progress-content"><div className="content-heading"><div><span className="eyebrow">ЛИЧНОЕ ДЕЛО АТЛЕТА</span><h2>Твой путь в клубе</h2></div><History size={26} /></div><div className="progress-summary"><div><Flame size={23} /><strong>{progress.best}<small>дней</small></strong><span>Лучшая серия</span></div><div><Dumbbell size={23} /><strong>{progress.completed}<small>дней</small></strong><span>Тренировок закрыто</span></div><div><Award size={23} /><strong>{challenges.filter(c => c.value >= c.target).length}<small>из 4</small></strong><span>Наград получено</span></div></div>
+        </> : <section className="wide-content progress-content"><div className="content-heading"><div><span className="eyebrow">ЛИЧНОЕ ДЕЛО АТЛЕТА</span><h2>Твой путь в клубе</h2></div><History size={26} /></div><div className="progress-summary"><div><Flame size={23} /><strong>{progress.best}<small>дней</small></strong><span>Лучшая серия</span></div><div><Dumbbell size={23} /><strong>{progress.completed}<small>дней</small></strong><span>Тренировок закрыто</span></div><div><Award size={23} /><strong>{challenges.filter(c => c.value >= c.target).length}<small>из 4</small></strong><span>Наград получено</span></div></div>
           <section className="challenges-section" aria-labelledby="challenges-title"><div className="challenges-heading"><div><span className="eyebrow">ЗАРАБОТАЙ СВОЁ УВАЖЕНИЕ</span><h2 id="challenges-title">МАЛЕНЬКИЕ ПОБЕДЫ. <span>БОЛЬШОЙ ХАРАКТЕР.</span></h2></div><span className="challenge-count">{challenges.filter(c => c.value >= c.target).length} / 4 НАГРАДЫ</span></div><div className="challenge-grid">{challenges.map(challenge => { const earned = challenge.value >= challenge.target; return <article key={challenge.name} className={`challenge ${earned ? 'earned' : ''}`}><div className="challenge-badge"><challenge.Icon size={29} strokeWidth={1.5} />{earned ? <BadgeCheck className="badge-lock" size={13} /> : <LockKeyhole className="badge-lock" size={12} />}</div><div className="challenge-details"><h3>{challenge.name}</h3><p>{challenge.text}</p><div className="challenge-progress"><div className="progress-track"><span style={{ width: `${Math.min(100, challenge.value / challenge.target * 100)}%` }} /></div><span>{Math.min(challenge.value, challenge.target)}/{challenge.target}</span></div></div></article> })}</div></section>
           <h3 className="history-heading">ЖУРНАЛ ТРЕНИРОВОК</h3>{state.workouts.length ? <div className="history-list">{[...state.workouts].sort((a, b) => b.date.localeCompare(a.date)).map(w => <article className="history-row" key={w.date}><div className={`history-icon ${isComplete(w) ? 'finished' : ''}`}>{isComplete(w) ? <Check size={22} /> : <Dumbbell size={22} />}</div><div><h4>{new Date(`${w.date}T12:00:00`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</h4><p>{w.picks.map(p => `${EXERCISES.find(e => e.id === p.exerciseId)!.name} ${p.amount}`).join(' · ')}</p></div><span>{w.done.filter(Boolean).length}/3</span></article>)}</div> : <div className="empty-progress"><Dumbbell size={45} strokeWidth={1.2} /><h3>История начинается с тебя</h3><p>Первая тренировка — первая запись.<br />Крути рулетку и начни свою серию.</p><button className="primary-button" onClick={() => setView('workout')}>К тренировке</button></div>}</section>}
       </div>
 
-      <footer className="site-footer"><div><Dumbbell size={18} /><span>GYM ROULETTE</span><span className="footer-dot">·</span><span>МЕНЬШЕ СЛОВ. БОЛЬШЕ ПОВТОРОВ.</span></div><button className="text-button" onClick={() => setModal('help')}>ПРАВИЛА КЛУБА <CircleHelp size={14} /></button></footer>
     </main>
 
     {storageUnavailable && <div className="storage-notice" role="alert">Браузер не разрешает сохранить прогресс. Сейчас он доступен только до закрытия страницы.</div>}

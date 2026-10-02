@@ -19,7 +19,6 @@ export default function SlotMachine({ workout, spinning, sound, onSpin, onSound,
       <span className="machine-screw screw-tl" /><span className="machine-screw screw-tr" /><span className="machine-screw screw-bl" /><span className="machine-screw screw-br" />
       <div className="machine-topline"><span className="machine-rule" /><span className="small-star">✦</span><span>NO PAIN, NO GAME</span><span className="small-star">✦</span><span className="machine-rule" /></div>
       <h2 id="roulette-title" className="machine-title">GYM <span>ROULETTE</span></h2>
-      <div className="machine-subtitle"><span />ТРИ УПРАЖНЕНИЯ. ОДИН ТЫ.<span /></div>
       <div className="reel-labels" aria-hidden="true"><span>01 — РАЗОГРЕЙСЯ</span><span>02 — СОБЕРИСЬ</span><span>03 — ДОЖМИ</span></div>
       <div className="reels" aria-label={spinning ? 'Рулетка вращается' : 'Три упражнения'} aria-busy={spinning}>
         {picks.map((pick, index) => {
