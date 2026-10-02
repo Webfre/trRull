@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Award, BadgeCheck, CalendarDays, Check, ChevronRight, Dumbbell, Flame, History, LockKeyhole, Medal, Pencil, Settings2, ShieldCheck, Sparkles, Star, Ticket, Trophy, X } from 'lucide-react'
+import { Award, BadgeCheck, CalendarDays, Check, ChevronRight, Dumbbell, Flame, History, LockKeyhole, Medal, Pencil, Settings2, ShieldCheck, Sparkles, Ticket, Trophy, X } from 'lucide-react'
 import { EXERCISES, STORAGE_KEY, beginDailyWorkout, finishExercise, initialState, isComplete, localDate, parseState, previousDay, stats, type ClubState, type Settings } from './lib/workout'
 import Modal from './components/Modal'
 import SettingsForm from './components/SettingsForm'
 import SlotMachine from './components/SlotMachine'
+import CoachCompanion from './components/CoachCompanion'
 
 type View = 'workout' | 'progress'
 type ModalType = 'profile' | 'settings' | 'help' | 'tomorrow' | 'success' | null
@@ -145,13 +146,13 @@ export default function App() {
         </aside>
 
         {view === 'workout' ? <>
-          <SlotMachine workout={workout} spinning={spinning} sound={state.settings.sound} onSpin={spin} onSound={() => { const latest = currentState(); save({ ...latest, settings: { ...latest.settings, sound: !latest.settings.sound } }) }} onHelp={() => setModal('help')} onDone={complete} remaining={remainingToday(now)} />
-          <aside className="coach-sidebar"><section className="coach-poster"><div className="poster-top"><span>СЛОВО ТРЕНЕРА</span><Star size={15} /></div><div className="coach-speech">{isComplete(workout) ? <>ВОТ ЭТО<br />Я ПОНИМАЮ!</> : <>ЭЙ, БАДДИ.<br />ТВОЙ ВЫХОД!</>}</div><div className="coach-art"><span className="coach-sunburst" aria-hidden="true" /><img src={mascotUrl} width="1122" height="1402" alt="Усатый мультяшный тренер с повязкой на голове показывает большой палец" /></div><div className="coach-quote"><span>«</span><p>{isComplete(workout) ? <>СЕГОДНЯ ТЫ<br />СДЕЛАЛ ДЕЛО.</> : <>ХАРАКТЕР СИЛЬНЕЕ<br />ЛЮБОЙ ОТГОВОРКИ.</>}</p></div></section></aside>
+          <SlotMachine workout={workout} spinning={spinning} sound={state.settings.sound} onSpin={spin} onSound={() => { const latest = currentState(); save({ ...latest, settings: { ...latest.settings, sound: !latest.settings.sound } }) }} onHelp={() => setModal('help')} onDone={complete} />
         </> : <section className="wide-content progress-content"><div className="content-heading"><div><span className="eyebrow">ЛИЧНОЕ ДЕЛО АТЛЕТА</span><h2>Твой путь в клубе</h2></div><History size={26} /></div><div className="progress-summary"><div><Flame size={23} /><strong>{progress.best}<small>дней</small></strong><span>Лучшая серия</span></div><div><Dumbbell size={23} /><strong>{progress.completed}<small>дней</small></strong><span>Тренировок закрыто</span></div><div><Award size={23} /><strong>{challenges.filter(c => c.value >= c.target).length}<small>из 4</small></strong><span>Наград получено</span></div></div>
           <section className="challenges-section" aria-labelledby="challenges-title"><div className="challenges-heading"><div><span className="eyebrow">ЗАРАБОТАЙ СВОЁ УВАЖЕНИЕ</span><h2 id="challenges-title">МАЛЕНЬКИЕ ПОБЕДЫ. <span>БОЛЬШОЙ ХАРАКТЕР.</span></h2></div><span className="challenge-count">{challenges.filter(c => c.value >= c.target).length} / 4 НАГРАДЫ</span></div><div className="challenge-grid">{challenges.map(challenge => { const earned = challenge.value >= challenge.target; return <article key={challenge.name} className={`challenge ${earned ? 'earned' : ''}`}><div className="challenge-badge"><challenge.Icon size={29} strokeWidth={1.5} />{earned ? <BadgeCheck className="badge-lock" size={13} /> : <LockKeyhole className="badge-lock" size={12} />}</div><div className="challenge-details"><h3>{challenge.name}</h3><p>{challenge.text}</p><div className="challenge-progress"><div className="progress-track"><span style={{ width: `${Math.min(100, challenge.value / challenge.target * 100)}%` }} /></div><span>{Math.min(challenge.value, challenge.target)}/{challenge.target}</span></div></div></article> })}</div></section>
           <h3 className="history-heading">ЖУРНАЛ ТРЕНИРОВОК</h3>{state.workouts.length ? <div className="history-list">{[...state.workouts].sort((a, b) => b.date.localeCompare(a.date)).map(w => <article className="history-row" key={w.date}><div className={`history-icon ${isComplete(w) ? 'finished' : ''}`}>{isComplete(w) ? <Check size={22} /> : <Dumbbell size={22} />}</div><div><h4>{new Date(`${w.date}T12:00:00`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</h4><p>{w.picks.map(p => `${EXERCISES.find(e => e.id === p.exerciseId)!.name} ${p.amount}`).join(' · ')}</p></div><span>{w.done.filter(Boolean).length}/3</span></article>)}</div> : <div className="empty-progress"><Dumbbell size={45} strokeWidth={1.2} /><h3>История начинается с тебя</h3><p>Первая тренировка — первая запись.<br />Крути рулетку и начни свою серию.</p><button className="primary-button" onClick={() => setView('workout')}>К тренировке</button></div>}</section>}
       </div>
 
+      {view === 'workout' && <CoachCompanion today={today} imageUrl={mascotUrl} />}
     </main>
 
     {storageUnavailable && <div className="storage-notice" role="alert">Браузер не разрешает сохранить прогресс. Сейчас он доступен только до закрытия страницы.</div>}

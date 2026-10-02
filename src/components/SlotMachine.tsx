@@ -3,10 +3,10 @@ import { Check, CircleHelp, Dumbbell, RotateCw, Volume2, VolumeX } from 'lucide-
 import { EXERCISES, isComplete, type Workout } from '../lib/workout'
 import ExerciseIcon from './ExerciseIcon'
 
-type Props = { workout?: Workout; spinning: boolean; sound: boolean; onSpin: () => void; onSound: () => void; onHelp: () => void; onDone: (index: number) => void; remaining: string }
+type Props = { workout?: Workout; spinning: boolean; sound: boolean; onSpin: () => void; onSound: () => void; onHelp: () => void; onDone: (index: number) => void }
 const preview = [{ exerciseId: 'squat', amount: 20 }, { exerciseId: 'plank', amount: 30 }, { exerciseId: 'walk', amount: 15 }]
 
-export default function SlotMachine({ workout, spinning, sound, onSpin, onSound, onHelp, onDone, remaining }: Props) {
+export default function SlotMachine({ workout, spinning, sound, onSpin, onSound, onHelp, onDone }: Props) {
   const picks = workout?.picks ?? preview
   const completed = isComplete(workout)
   const sequences = useMemo(() => picks.map((pick, column) => [
@@ -49,7 +49,6 @@ export default function SlotMachine({ workout, spinning, sound, onSpin, onSound,
         </button>
         <button className="sound-button" onClick={onSound} aria-label={sound ? 'Выключить звук' : 'Включить звук'} aria-pressed={sound}>{sound ? <Volume2 size={22} /> : <VolumeX size={22} />}<span>{sound ? 'ЗВУК ВКЛ' : 'ЗВУК ВЫКЛ'}</span></button>
       </div>
-      <div className="machine-bottom"><span>1 ДЕНЬ = 1 ПОПЫТКА</span><span>{workout ? `НОВАЯ ЧЕРЕЗ ${remaining}` : 'ТВОЙ ЕЖЕДНЕВНЫЙ ПОДХОД'}</span></div>
     </div>
     {workout && !spinning && <div className="workout-checklist" aria-live="polite">
       {workout.picks.map((pick, index) => {

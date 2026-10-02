@@ -1,0 +1,96 @@
+.coach-companion {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 22px;
+  width: min(100%, 1070px);
+  margin: 0 auto 28px;
+  padding: 0 4px;
+}
+
+.coach-character {
+  flex: 0 0 142px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  background: none;
+  border-radius: 8px;
+}
+
+.coach-character img {
+  width: 142px;
+  height: 178px;
+  object-fit: contain;
+  transform-origin: 50% 92%;
+  transition: transform .2s ease;
+  user-select: none;
+}
+
+.coach-character:hover:not([aria-disabled='true']) img { transform: rotate(-4deg) translateY(-4px); }
+.coach-character:active:not([aria-disabled='true']) img { transform: scale(.95); }
+.coach-tap-hint { display: flex; gap: 6px; align-items: center; font-size: 14px; color: var(--red); }
+.coach-character[aria-disabled='true'] .coach-tap-hint { color: var(--muted); }
+
+.coach-bubble {
+  position: relative;
+  width: min(390px, 100%);
+  padding: 18px 20px 15px;
+  margin-bottom: 46px;
+  background: var(--paper-light);
+  border: 1.5px solid var(--ink);
+  border-radius: 12px 12px 2px 12px;
+  box-shadow: 3px 3px 0 #d2cbbb;
+  animation: coach-bubble-in .22s ease-out;
+}
+
+.coach-bubble::after {
+  content: '';
+  position: absolute;
+  right: -9px;
+  bottom: 17px;
+  width: 16px;
+  height: 16px;
+  background: var(--paper-light);
+  border-right: 1.5px solid var(--ink);
+  border-top: 1.5px solid var(--ink);
+  transform: rotate(45deg);
+}
+
+.coach-line { font-size: 17px; line-height: 1.5; overflow-wrap: anywhere; }
+.has-story .coach-line { min-height: 4.5em; }
+.coach-daily-count { display: block; font-size: 12px; letter-spacing: .3px; color: var(--muted); margin-top: 12px; }
+.coach-storage-warning { font-size: 13px; line-height: 1.4; margin-top: 12px; color: var(--red-dark); }
+.coach-caret { display: inline-block; width: 2px; height: 1em; margin-left: 3px; background: var(--red); vertical-align: -.1em; }
+.coach-talking .coach-character img { animation: coach-talk .65s ease-in-out 3; }
+.coach-leaving { animation: coach-leave .45s ease-in forwards; pointer-events: none; }
+
+@keyframes coach-talk {
+  0%, 100% { transform: rotate(0); }
+  30% { transform: rotate(-5deg) translateY(-6px); }
+  65% { transform: rotate(3deg) translateY(-2px); }
+}
+@keyframes coach-bubble-in { from { opacity: 0; transform: translateY(6px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes coach-leave { to { opacity: 0; transform: translateY(18px) scale(.96); } }
+
+@media (max-width: 760px) {
+  .coach-companion { gap: 16px; margin-bottom: 24px; }
+  .coach-character { flex-basis: 118px; }
+  .coach-character img { width: 118px; height: 148px; }
+  .coach-bubble { margin-bottom: 36px; padding: 15px; }
+  .coach-line { font-size: 16px; }
+}
+
+@media (max-width: 480px) {
+  .coach-companion { flex-wrap: wrap; gap: 12px; }
+  .coach-bubble { width: 100%; margin: 0 0 0 6px; }
+  .coach-bubble::after { right: 49px; bottom: -9px; transform: rotate(135deg); }
+  .coach-character { margin-right: 1px; }
+  .has-story .coach-line { min-height: 3em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coach-companion, .coach-bubble, .coach-character img { animation: none; transition: none; }
+  .coach-character:hover:not([aria-disabled='true']) img, .coach-character:active:not([aria-disabled='true']) img { transform: none; }
+}
