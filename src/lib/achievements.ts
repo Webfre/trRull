@@ -47,8 +47,8 @@ export function achievementCollections(state: ClubState, today: string, mode: Ac
     })
   }
   return [
-    ...ACHIEVEMENT_EXERCISES.map(exercise => collection(exercise.id, exercise.name, exercise.unit, totals.get(exercise.id)!, mode === 'single' ? SINGLE_MILESTONES[exercise.id] : exercise.id === 'cycling' ? CYCLING_MILESTONES : EXERCISE_MILESTONES, mode)),
     ...(mode === 'total' ? [collection('streak', 'Ударная серия', 'дней', stats(state, today).best, STREAK_MILESTONES)] : []),
+    ...ACHIEVEMENT_EXERCISES.map(exercise => collection(exercise.id, exercise.name, exercise.unit, totals.get(exercise.id)!, mode === 'single' ? SINGLE_MILESTONES[exercise.id] : exercise.id === 'cycling' ? CYCLING_MILESTONES : EXERCISE_MILESTONES, mode)),
     collection('steps', mode === 'single' ? 'Шаги за прогулку' : 'Пройдено шагов', 'шагов', steps, mode === 'single' ? SINGLE_MILESTONES.steps : STEP_MILESTONES, mode),
   ]
 }
