@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Check, CircleHelp, Dumbbell, RotateCw, Settings2, Volume2, VolumeX } from 'lucide-react'
+import { Check, CircleHelp, Dumbbell, RotateCw, Settings2, Sparkles, Volume2, VolumeX } from 'lucide-react'
 import { EXERCISES, getExercise, isComplete, type Workout } from '../lib/workout'
 import ExerciseIcon from './ExerciseIcon'
 
@@ -9,13 +9,14 @@ const preview = [{ exerciseId: 'squat', amount: 20 }, { exerciseId: 'plank', amo
 export default function SlotMachine({ workout, spinning, sound, onSpin, onSound, onHelp, onSettings, onDone }: Props) {
   const picks = workout?.picks ?? preview
   const completed = isComplete(workout)
+  const combo = !!workout?.combo && !spinning
   const sequences = useMemo(() => picks.map((pick, column) => [
     ...Array.from({ length: 16 }, (_, index) => ({ exerciseId: EXERCISES[(index * 3 + column * 5) % EXERCISES.length].id, amount: 10 })), pick,
   ]), [workout]) // The reel sequence stays fixed during an active spin.
 
   return <section className="roulette-section" aria-labelledby="roulette-title">
     <div className="section-eyebrow"><button className="settings-link" onClick={onSettings}><Settings2 size={17} /><span>Настроить рулетку</span></button><button className="text-button help-button" onClick={onHelp} aria-label="Чё кого, бро? — правила клуба"><CircleHelp size={15} />Чё кого, бро?</button></div>
-    <div className={`slot-machine ${spinning ? 'is-spinning' : ''} ${completed ? 'is-complete' : ''}`}>
+    <div className={`slot-machine ${spinning ? 'is-spinning' : ''} ${completed ? 'is-complete' : ''} ${combo ? 'has-combo' : ''}`}>
       <span className="machine-screw screw-tl" /><span className="machine-screw screw-tr" /><span className="machine-screw screw-bl" /><span className="machine-screw screw-br" />
       <div className="machine-topline"><span className="machine-rule" /><span className="small-star">✦</span><span>NO PAIN, NO GAME</span><span className="small-star">✦</span><span className="machine-rule" /></div>
       <h2 id="roulette-title" className="machine-title">GYM <span>ROULETTE</span></h2>
@@ -32,7 +33,7 @@ export default function SlotMachine({ workout, spinning, sound, onSpin, onSound,
                 return <div className="reel-item" key={itemIndex} aria-hidden={spinning || undefined}>
                   <div className={`exercise-emblem emblem-${current.id}`}><ExerciseIcon id={current.id} size={51} /></div>
                   <h3>{current.name}</h3>
-                  <p className={workout ? 'reel-amount' : 'reel-preview'}>{workout ? <><strong>{item.amount}</strong> {current.unit}</> : '???'}</p>
+                  <p className={workout ? 'reel-amount' : 'reel-preview'}>{workout ? <>{combo && <span className="reel-original-amount" aria-hidden="true">{item.amount / 2}</span>}<strong>{item.amount}</strong> {current.unit}</> : '???'}</p>
                 </div>
               })}
             </div>
@@ -40,7 +41,7 @@ export default function SlotMachine({ workout, spinning, sound, onSpin, onSound,
           </div>
         })}
       </div>
-      <div className="machine-caption"><span>★</span><span>{spinning ? 'ЖЕЛЕЗО ВЫБИРАЕТ. ТЫ ГОТОВИШЬСЯ.' : workout ? completed ? 'ЕЩЁ ОДИН ДЕНЬ В КОПИЛКУ ХАРАКТЕРА' : 'СЛУЧАЙ ВЫБРАЛ. ТЕПЕРЬ ТВОЯ ОЧЕРЕДЬ.' : 'ИСПЫТАЙ УДАЧУ. ПРОКАЧАЙ ХАРАКТЕР.'}</span><span>★</span></div>
+      {combo ? <div className="machine-caption combo-caption" role="status"><Sparkles size={18} /><strong>КОМБО ×2</strong><span>ОБЪЁМ УЖЕ УДВОЕН</span></div> : <div className="machine-caption"><span>★</span><span>{spinning ? 'ЖЕЛЕЗО ВЫБИРАЕТ. ТЫ ГОТОВИШЬСЯ.' : workout ? completed ? 'ЕЩЁ ОДИН ДЕНЬ В КОПИЛКУ ХАРАКТЕРА' : 'СЛУЧАЙ ВЫБРАЛ. ТЕПЕРЬ ТВОЯ ОЧЕРЕДЬ.' : 'ИСПЫТАЙ УДАЧУ. ПРОКАЧАЙ ХАРАКТЕР.'}</span><span>★</span></div>}
       <div className="machine-controls">
         <span className="control-side"><Dumbbell size={20} /><span>OLD SCHOOL<br />TRAINING CLUB</span></span>
         <button className="spin-button" onClick={onSpin} disabled={spinning}>

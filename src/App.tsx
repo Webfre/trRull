@@ -5,6 +5,7 @@ import Modal from './components/Modal'
 import SettingsForm from './components/SettingsForm'
 import SettingsWelcome from './components/SettingsWelcome'
 import SlotMachine from './components/SlotMachine'
+import ComboConfetti from './components/ComboConfetti'
 import CoachCompanion from './components/CoachCompanion'
 import AchievementsPage from './components/AchievementsPage'
 import WalkingCompletion from './components/WalkingCompletion'
@@ -49,6 +50,7 @@ export default function App() {
   const [view, setView] = useState<View>('workout')
   const [modal, setModal] = useState<ModalType>(() => state.onboardingComplete ? null : 'welcome')
   const [spinning, setSpinning] = useState(false)
+  const [comboCelebration, setComboCelebration] = useState<string | null>(null)
   const [now, setNow] = useState(new Date())
   const [toast, setToast] = useState('')
   const [storageUnavailable, setStorageUnavailable] = useState(false)
@@ -76,6 +78,12 @@ export default function App() {
   }, [])
   useEffect(() => { if (!toast) return; const timer = setTimeout(() => setToast(''), 4500); return () => clearTimeout(timer) }, [toast])
 
+  useEffect(() => {
+    if (!comboCelebration) return
+    const timer = setTimeout(() => setComboCelebration(null), 5200)
+    return () => clearTimeout(timer)
+  }, [comboCelebration])
+
   function save(next: ClubState) {
     stateRef.current = next
     setState(next)
@@ -96,14 +104,20 @@ export default function App() {
     const result = beginDailyWorkout(latest, date)
     if (!result.created) { save(latest); setModal('tomorrow'); return }
     save(result.state)
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setToast('Твоя тройка готова. Время действовать!'); return }
+    const combo = !!result.state.workouts.find(workout => workout.date === date)?.combo
+    const reveal = () => {
+      if (localDate() !== date) return
+      if (combo) setComboCelebration(date)
+      setToast(combo ? 'Комбо ×2! Объём всех трёх заданий уже удвоен.' : 'Твоя тройка готова. Время действовать!')
+    }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { reveal(); return }
     spinningRef.current = true
     setSpinning(true)
     if (latest.settings.sound) chime()
     spinTimer.current = setTimeout(() => {
       spinningRef.current = false
       setSpinning(false)
-      setToast('Твоя тройка готова. Время действовать!')
+      reveal()
       if (latest.settings.sound) chime()
     }, 2800)
   }
@@ -173,6 +187,7 @@ export default function App() {
       {view === 'workout' && <CoachCompanion today={today} imageUrl={mascotUrl} />}
     </main>
 
+    {comboCelebration === today && <ComboConfetti />}
     {storageUnavailable && <div className="storage-notice" role="alert">Браузер не разрешает сохранить прогресс. Сейчас он доступен только до закрытия страницы.</div>}
     {toast && <div className="toast" role="status"><Check size={18} /><span>{toast}</span><button className="icon-button" aria-label="Закрыть уведомление" onClick={() => setToast('')}><X size={17} /></button></div>}
     {walking && <WalkingCompletion minutes={walking.minutes} onClose={() => setWalking(null)} onComplete={steps => {
@@ -184,7 +199,7 @@ export default function App() {
     {modal === 'calendar' && <CalendarHistory state={state} today={today} onClose={() => setModal(null)} />}
     {(modal === 'settings' || modal === 'welcome') && <Modal title={modal === 'welcome' ? 'Настроим твою рулетку' : 'Твоя рулетка — твои правила'} onClose={closeSettings} className={`settings-modal ${modal === 'welcome' ? 'welcome-modal' : ''}`}><SettingsForm settings={state.settings} onSave={saveSettings} onCancel={closeSettings} intro={modal === 'welcome' ? <SettingsWelcome imageUrl={mascotUrl} /> : undefined} saveLabel={modal === 'welcome' ? 'Сохранить и начать' : undefined} cancelLabel={modal === 'welcome' ? 'Оставить как есть' : undefined} /></Modal>}
     {modal === 'profile' && <Modal title="Клубная карта" onClose={() => setModal(null)}><ProfileForm name={state.name} onSave={name => { save({ ...currentState(), name }); setModal(null); setToast('Теперь в клубе тебя знают по имени.') }} /><p className="privacy-note">Имя и прогресс хранятся только в этом браузере. Регистрация не нужна.</p></Modal>}
-    {modal === 'help' && <Modal title="Правила нашего клуба" onClose={() => setModal(null)}><div className="rules-list"><div><b>01</b><section><h3>Доверься случаю</h3><p>Одна прокрутка в календарные сутки по времени твоего устройства. Рулетка выбирает три упражнения и объём. Повторы могут совпасть.</p></section></div><div><b>02</b><section><h3>Сделай своё дело</h3><p>Выполни упражнения в удобном порядке и отметь каждое. Все три готовы — тренировка закрыта.</p></section></div><div><b>03</b><section><h3>Вернись завтра</h3><p>Новая попытка появляется в полночь. Собирай тренировки, поддерживай серию и открывай награды.</p></section></div></div><p className="rules-note">Начни с короткой разминки и выбирай посильную нагрузку. Упражнения и диапазоны можно менять в настройках.</p><button className="primary-button full-width" onClick={() => setModal(null)}>Понял. Погнали!</button></Modal>}
+    {modal === 'help' && <Modal title="Правила нашего клуба" onClose={() => setModal(null)}><div className="rules-list"><div><b>01</b><section><h3>Доверься случаю</h3><p>Одна прокрутка в календарные сутки по времени твоего устройства. Рулетка выбирает три упражнения и объём. Если включены хотя бы три разных упражнения и выпало три одинаковых — комбо ×2: объём каждого задания удваивается.</p></section></div><div><b>02</b><section><h3>Сделай своё дело</h3><p>Выполни упражнения в удобном порядке и отметь каждое. Все три готовы — тренировка закрыта.</p></section></div><div><b>03</b><section><h3>Вернись завтра</h3><p>Новая попытка появляется в полночь. Собирай тренировки, поддерживай серию и открывай награды.</p></section></div></div><p className="rules-note">Начни с короткой разминки и выбирай посильную нагрузку. Упражнения и диапазоны можно менять в настройках.</p><button className="primary-button full-width" onClick={() => setModal(null)}>Понял. Погнали!</button></Modal>}
     {(modal === 'tomorrow' || modal === 'success') && <Modal title={modal === 'success' ? 'ЕЩЁ ОДНА ПОБЕДА!' : 'ЗАВТРА — НОВЫЙ ПОДХОД'} onClose={() => setModal(null)} className="celebration-modal"><div className="celebration-art"><img src={mascotUrl} alt="Тренер одобрительно показывает большой палец" width="1122" height="1402" /><span><Sparkles size={27} /></span></div><h3>{modal === 'success' ? 'YEAH, BUDDY!' : 'НА СЕГОДНЯ ХВАТИТ, БРО.'}</h3><p>{modal === 'success' ? 'Три упражнения закрыты. Характер прокачан. Отдыхай и возвращайся за новой тройкой завтра.' : isComplete(workout) ? 'Ты уже сделал своё дело. Восстановись — завтра железо снова позовёт.' : 'Твоя тройка уже выбрана. Выполни упражнения и отметь их, а за новой порцией заходи завтра.'}</p><div className="next-spin-label">СЛЕДУЮЩАЯ ПРОКРУТКА ЧЕРЕЗ <strong>{remainingToday(now)}</strong></div><button className="primary-button full-width" onClick={() => setModal(null)}>{isComplete(workout) ? 'ДО ЗАВТРА, ТРЕНЕР' : 'К УПРАЖНЕНИЯМ'}</button></Modal>}
   </>
 }

@@ -1,7 +1,7 @@
 export type Category = 'strength' | 'cardio' | 'mobility'
 export type Exercise = { id: string; name: string; unit: string; min: number; max: number; step: number; amounts?: readonly number[]; category: Category; equipment?: string; tip: string }
 export type Pick = { exerciseId: string; amount: number; steps?: number }
-export type Workout = { date: string; picks: Pick[]; done: boolean[] }
+export type Workout = { date: string; picks: Pick[]; done: boolean[]; combo?: { multiplier: 2; poolSize: number } }
 export type Range = { min: number; max: number }
 export type Settings = { enabled: string[]; ranges: Record<string, Range>; sound: boolean }
 export type ClubState = { version: 1; name: string; joined: string; onboardingComplete: boolean; settings: Settings; workouts: Workout[] }
@@ -84,7 +84,13 @@ export function rollWorkout(settings: Settings, date: string, random: () => numb
       : exercise.amounts ? exercise.amounts[0] : range.min + Math.floor(random() * (steps + 1)) * exercise.step
     return { exerciseId: exercise.id, amount }
   })
-  return { date, picks, done: [false, false, false] }
+  const combo = pool.length >= 3 && picks.every(pick => pick.exerciseId === picks[0].exerciseId)
+  return {
+    date,
+    picks: combo ? picks.map(pick => ({ ...pick, amount: pick.amount * 2 })) : picks,
+    done: [false, false, false],
+    ...(combo ? { combo: { multiplier: 2 as const, poolSize: pool.length } } : {}),
+  }
 }
 
 export function beginDailyWorkout(state: ClubState, date: string, random: () => number = Math.random): { state: ClubState; created: boolean } {
@@ -130,7 +136,9 @@ export function parseState(raw: string | null): ClubState {
     const workouts: Workout[] = []
     if (Array.isArray(value.workouts)) for (const w of value.workouts) {
       if (!w || !validDay(w.date) || dates.has(w.date) || !Array.isArray(w.picks) || w.picks.length !== 3 || !Array.isArray(w.done) || w.done.length !== 3) continue
-      if (!w.picks.every((p: Pick) => p && getExercise(p.exerciseId) && Number.isInteger(p.amount) && p.amount > 0 && p.amount <= 300)) continue
+      const combo = w.combo?.multiplier === 2 && Number.isInteger(w.combo.poolSize) && w.combo.poolSize >= 3 && w.combo.poolSize <= EXERCISES.length
+        && w.picks.every((p: Pick) => p && p.exerciseId === w.picks[0]?.exerciseId && Number.isInteger(p.amount) && p.amount % 2 === 0)
+      if (!w.picks.every((p: Pick) => p && getExercise(p.exerciseId) && Number.isInteger(p.amount) && p.amount > 0 && p.amount <= (combo ? 600 : 300))) continue
       dates.add(w.date)
       workouts.push({ date: w.date, picks: w.picks.map((p: Pick, index: number) => {
         const replacementId = w.done[index] === true || w.date < fallback.joined ? undefined : EXERCISE_REPLACEMENTS[p.exerciseId]
@@ -138,7 +146,7 @@ export function parseState(raw: string | null): ClubState {
         const pick: Pick = { exerciseId: replacement?.id ?? p.exerciseId, amount: replacement ? replacement.amounts?.[0] ?? Math.max(replacement.min, Math.min(replacement.max, p.amount)) : p.amount }
         if (pick.exerciseId === 'walk' && Number.isInteger(p.steps) && p.steps! > 0 && p.steps! <= 100_000) pick.steps = p.steps
         return pick
-      }), done: w.done.map((d: unknown) => d === true) })
+      }), done: w.done.map((d: unknown) => d === true), ...(combo ? { combo: { multiplier: 2 as const, poolSize: w.combo.poolSize } } : {}) })
     }
     const joined = [validDay(value.joined) ? value.joined : fallback.joined, fallback.joined, ...workouts.map(workout => workout.date)].sort()[0]
     // Existing members have already visited the app; introduce settings only to new visitors.
