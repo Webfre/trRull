@@ -41,6 +41,5 @@ export default function CalendarHistory({ state, today, onClose }: { state: Club
     })}</div>
     <div className="calendar-legend"><span><i className="legend-complete" />Выполнено</span><span><i className="legend-missed" />Пропуск</span><span><i className="legend-today" />Сегодня</span></div>
     <section className="calendar-day-details" aria-labelledby="calendar-selected-day"><h3 id="calendar-selected-day">{new Date(`${selected}T12:00:00`).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</h3>{workout ? <ul>{workout.picks.map((pick, index) => { const exercise = getExercise(pick.exerciseId)!; return <li key={index} className={workout.done[index] ? 'done' : ''}><span aria-label={workout.done[index] ? 'Выполнено' : 'Не выполнено'}>{workout.done[index] ? <Check size={16} /> : <Minus size={16} />}</span><span>{exercise.name}</span><strong>{pick.amount} {exercise.unit}{pick.steps ? <small> · {pick.steps.toLocaleString('ru-RU')} шагов</small> : null}</strong></li> })}</ul> : <p>{selected === today ? 'Сегодняшняя тренировка ещё не выбрана.' : 'Тренировка не записана.'}</p>}</section>
-    <p className="calendar-explainer">Пропуск — прошедший день без трёх выполненных упражнений. Сегодня и дни до первого визита в процент не входят.</p>
   </Modal>
 }

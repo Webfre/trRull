@@ -1,9 +1,11 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { Check, SlidersHorizontal } from 'lucide-react'
 import { EXERCISES, type Settings } from '../lib/workout'
 import ExerciseIcon from './ExerciseIcon'
 
-export default function SettingsForm({ settings, onSave, onCancel }: { settings: Settings; onSave: (settings: Settings) => void; onCancel: () => void }) {
+type Props = { settings: Settings; onSave: (settings: Settings) => void; onCancel: () => void; intro?: ReactNode; saveLabel?: string; cancelLabel?: string }
+
+export default function SettingsForm({ settings, onSave, onCancel, intro, saveLabel = 'Сохранить настройки', cancelLabel = 'Отмена' }: Props) {
   const [draft, setDraft] = useState<Settings>(structuredClone(settings))
   const [error, setError] = useState('')
   function submit(event: FormEvent) {
@@ -23,7 +25,7 @@ export default function SettingsForm({ settings, onSave, onCancel }: { settings:
     onSave(draft)
   }
   return <form onSubmit={submit}>
-    <p className="modal-intro">Выбери свои упражнения и комфортный объём. Новые настройки применятся к следующей прокрутке.</p>
+    {intro ?? <p className="modal-intro">Выбери свои упражнения и комфортный объём. Новые настройки применятся к следующей прокрутке.</p>}
     <div className="settings-table-head"><span>УПРАЖНЕНИЕ</span><span>ОТ</span><span>ДО</span></div>
     <div className="settings-exercises">{EXERCISES.map(exercise => {
       const enabled = draft.enabled.includes(exercise.id)
@@ -34,6 +36,6 @@ export default function SettingsForm({ settings, onSave, onCancel }: { settings:
       </div>
     })}</div>
     {error && <p className="form-error" role="alert">{error}</p>}
-    <div className="modal-actions"><button type="button" className="secondary-button" onClick={onCancel}>Отмена</button><button className="primary-button" type="submit"><SlidersHorizontal size={17} />Сохранить настройки</button></div>
+    <div className="modal-actions"><button type="button" className="secondary-button" onClick={onCancel}>{cancelLabel}</button><button className="primary-button" type="submit"><SlidersHorizontal size={17} />{saveLabel}</button></div>
   </form>
 }

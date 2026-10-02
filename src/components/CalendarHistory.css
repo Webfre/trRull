@@ -38,5 +38,4 @@
 .calendar-day-details li.done { color: var(--green); }
 .calendar-day-details li strong { margin-left: auto; text-align: right; font-size: 13px; }
 .calendar-day-details li small { display: block; font-weight: 400; font-size: 12px; }
-.calendar-explainer { margin-top: 22px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 @media (max-width: 480px) { .calendar-week-labels, .calendar-month-grid { gap: 4px; }.calendar-day { min-height: 44px; font-size: 14px; }.calendar-month-nav h3 { font-size: 21px; }.calendar-day-details li { font-size: 13px; }.calendar-legend { gap: 10px; } }

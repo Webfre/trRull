@@ -3,6 +3,7 @@ import { Award, CalendarDays, Check, ChevronRight, Dumbbell, Flame, Pencil, Spar
 import { getExercise, STORAGE_KEY, beginDailyWorkout, finishExercise, initialState, isComplete, localDate, parseState, previousDay, stats, type ClubState, type Settings } from './lib/workout'
 import Modal from './components/Modal'
 import SettingsForm from './components/SettingsForm'
+import SettingsWelcome from './components/SettingsWelcome'
 import SlotMachine from './components/SlotMachine'
 import CoachCompanion from './components/CoachCompanion'
 import AchievementsPage from './components/AchievementsPage'
@@ -12,7 +13,7 @@ import { clubLevel } from './lib/levels'
 import { achievementCollections, achievementSummary } from './lib/achievements'
 
 type View = 'workout' | 'progress' | 'achievements'
-type ModalType = 'profile' | 'settings' | 'help' | 'tomorrow' | 'success' | 'calendar' | null
+type ModalType = 'profile' | 'settings' | 'welcome' | 'help' | 'tomorrow' | 'success' | 'calendar' | null
 const mascotUrl = `${import.meta.env.BASE_URL}assets/coach.png`
 
 function readState() {
@@ -46,7 +47,7 @@ function remainingToday(now: Date) {
 export default function App() {
   const [state, setState] = useState<ClubState>(readState)
   const [view, setView] = useState<View>('workout')
-  const [modal, setModal] = useState<ModalType>(null)
+  const [modal, setModal] = useState<ModalType>(() => state.onboardingComplete ? null : 'welcome')
   const [spinning, setSpinning] = useState(false)
   const [now, setNow] = useState(new Date())
   const [toast, setToast] = useState('')
@@ -128,9 +129,14 @@ export default function App() {
   }
 
   function saveSettings(settings: Settings) {
-    save({ ...currentState(), settings })
+    save({ ...currentState(), settings, onboardingComplete: true })
     setModal(null)
     setToast('Настройки сохранены. Следующая прокрутка — по твоим правилам.')
+  }
+
+  function closeSettings() {
+    if (modal === 'welcome') save({ ...currentState(), onboardingComplete: true })
+    setModal(null)
   }
 
   return <>
@@ -152,7 +158,7 @@ export default function App() {
           <section className="membership-card" aria-label="Профиль атлета">
             <div className="member-identity"><div className="member-avatar"><Dumbbell size={32} strokeWidth={1.5} /><span>★</span></div><h3>{state.name}</h3><button className="edit-profile" aria-label="Изменить имя" onClick={() => setModal('profile')}><Pencil size={14} /></button><div className="member-rank">{level.current.nickname}</div></div>
             <div className="member-stats"><div><span><Flame size={17} />Серия</span><strong>{progress.streak}<small> дн.</small></strong></div><div><span><Dumbbell size={17} />Тренировки</span><strong>{progress.completed}</strong></div></div>
-            <div className="member-level"><div><span>Уровень {level.current.level} / 20</span><strong>{level.next ? `ещё ${level.remaining}` : 'MAX'}</strong></div><div className="progress-track" role="progressbar" aria-label="Прогресс до следующего уровня" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(level.progress)}><span style={{ width: `${level.progress}%` }} /></div><p>{level.next ? `На ${level.next.days}-й тренировке: ${level.next.nickname}` : 'Высший ранг. Год в деле!'}</p></div>
+            <div className="member-level"><div><span>Уровень {level.current.level} / 20</span><strong>{level.next ? `ещё ${level.remaining} трен.` : 'MAX'}</strong></div><div className="progress-track" role="progressbar" aria-label="Прогресс до следующего уровня" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(level.progress)}><span style={{ width: `${level.progress}%` }} /></div><p>{level.next ? `Следующее звание: ${level.next.nickname}` : 'Высший ранг. Год в деле!'}</p></div>
           </section>
 
           <section className="week-card" aria-label="Твоя неделя"><button className="week-calendar-open" onClick={() => setModal('calendar')} aria-label="Твоя неделя — открыть календарь и статистику"><span className="card-topline"><strong>ТВОЯ НЕДЕЛЯ</strong><CalendarDays size={17} /></span><Week state={state} today={today} /><span className="week-caption">{progress.streak ? `Держишь темп уже ${progress.streak} дн.` : 'Открыть календарь'} <ChevronRight size={12} /></span></button></section>
@@ -176,7 +182,7 @@ export default function App() {
       complete(pending.index, steps)
     }} />}
     {modal === 'calendar' && <CalendarHistory state={state} today={today} onClose={() => setModal(null)} />}
-    {modal === 'settings' && <Modal title="Твоя рулетка — твои правила" onClose={() => setModal(null)} className="settings-modal"><SettingsForm settings={state.settings} onSave={saveSettings} onCancel={() => setModal(null)} /></Modal>}
+    {(modal === 'settings' || modal === 'welcome') && <Modal title={modal === 'welcome' ? 'Настроим твою рулетку' : 'Твоя рулетка — твои правила'} onClose={closeSettings} className={`settings-modal ${modal === 'welcome' ? 'welcome-modal' : ''}`}><SettingsForm settings={state.settings} onSave={saveSettings} onCancel={closeSettings} intro={modal === 'welcome' ? <SettingsWelcome imageUrl={mascotUrl} /> : undefined} saveLabel={modal === 'welcome' ? 'Сохранить и начать' : undefined} cancelLabel={modal === 'welcome' ? 'Оставить как есть' : undefined} /></Modal>}
     {modal === 'profile' && <Modal title="Клубная карта" onClose={() => setModal(null)}><ProfileForm name={state.name} onSave={name => { save({ ...currentState(), name }); setModal(null); setToast('Теперь в клубе тебя знают по имени.') }} /><p className="privacy-note">Имя и прогресс хранятся только в этом браузере. Регистрация не нужна.</p></Modal>}
     {modal === 'help' && <Modal title="Правила нашего клуба" onClose={() => setModal(null)}><div className="rules-list"><div><b>01</b><section><h3>Доверься случаю</h3><p>Одна прокрутка в календарные сутки по времени твоего устройства. Рулетка выбирает три упражнения и объём. Повторы могут совпасть.</p></section></div><div><b>02</b><section><h3>Сделай своё дело</h3><p>Выполни упражнения в удобном порядке и отметь каждое. Все три готовы — тренировка закрыта.</p></section></div><div><b>03</b><section><h3>Вернись завтра</h3><p>Новая попытка появляется в полночь. Собирай тренировки, поддерживай серию и открывай награды.</p></section></div></div><p className="rules-note">Начни с короткой разминки и выбирай посильную нагрузку. Упражнения и диапазоны можно менять в настройках.</p><button className="primary-button full-width" onClick={() => setModal(null)}>Понял. Погнали!</button></Modal>}
     {(modal === 'tomorrow' || modal === 'success') && <Modal title={modal === 'success' ? 'ЕЩЁ ОДНА ПОБЕДА!' : 'ЗАВТРА — НОВЫЙ ПОДХОД'} onClose={() => setModal(null)} className="celebration-modal"><div className="celebration-art"><img src={mascotUrl} alt="Тренер одобрительно показывает большой палец" width="1122" height="1402" /><span><Sparkles size={27} /></span></div><h3>{modal === 'success' ? 'YEAH, BUDDY!' : 'НА СЕГОДНЯ ХВАТИТ, БРО.'}</h3><p>{modal === 'success' ? 'Три упражнения закрыты. Характер прокачан. Отдыхай и возвращайся за новой тройкой завтра.' : isComplete(workout) ? 'Ты уже сделал своё дело. Восстановись — завтра железо снова позовёт.' : 'Твоя тройка уже выбрана. Выполни упражнения и отметь их, а за новой порцией заходи завтра.'}</p><div className="next-spin-label">СЛЕДУЮЩАЯ ПРОКРУТКА ЧЕРЕЗ <strong>{remainingToday(now)}</strong></div><button className="primary-button full-width" onClick={() => setModal(null)}>{isComplete(workout) ? 'ДО ЗАВТРА, ТРЕНЕР' : 'К УПРАЖНЕНИЯМ'}</button></Modal>}

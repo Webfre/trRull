@@ -1,0 +1,19 @@
+.settings-welcome { display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 16px; align-items: center; margin: 4px 0 26px; }
+.welcome-coach { width: 116px; height: auto; object-fit: contain; transform-origin: 50% 95%; animation: welcome-nod .65s ease-out both; }
+.welcome-speech { position: relative; padding: 16px; border: 1px solid var(--line); background: var(--paper); box-shadow: 3px 3px 0 #d8d4c5; }
+.welcome-speech::before { content: ''; position: absolute; left: -7px; top: 50%; width: 12px; height: 12px; background: var(--paper); border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); transform: rotate(45deg); }
+.welcome-speech h3 { font-family: var(--heading); font-size: 22px; font-weight: 500; line-height: 1.3; color: var(--red); margin-bottom: 10px; }
+.welcome-speech p { font-size: 14px; line-height: 1.5; }
+.welcome-speech p + p { margin-top: 10px; }
+.welcome-sendoff { color: var(--green); }
+@keyframes welcome-nod { 0% { opacity: 0; transform: translateY(10px) rotate(-5deg); } 65% { opacity: 1; transform: rotate(3deg); } 100% { opacity: 1; transform: translateY(0) rotate(0); } }
+@media (max-width: 480px) {
+  .settings-welcome { display: flow-root; }
+  .welcome-coach { float: left; width: 76px; margin: 0 14px 10px 0; }
+  .welcome-speech { padding: 0; border: 0; background: transparent; box-shadow: none; }
+  .welcome-speech::before { display: none; }
+  .welcome-speech h3 { font-size: 22px; }
+  .welcome-modal .modal-actions { flex-direction: column-reverse; }
+  .welcome-modal .modal-actions button { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .welcome-coach { animation: none; } }

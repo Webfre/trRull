@@ -79,3 +79,26 @@ test('local calendar days work across month, leap year and year boundaries', () 
   assert.equal(previousDay('2026-03-01'), '2026-02-28')
   assert.equal(localDate(new Date(2026, 9, 3, 0, 1)), '2026-10-03')
 })
+
+test('new visitors keep their unfinished introduction through reload, then retain completion', () => {
+  const firstVisit = parseState(null)
+  assert.equal(firstVisit.onboardingComplete, false)
+  assert.equal(parseState(JSON.stringify(firstVisit)).onboardingComplete, false)
+  const completed = { ...firstVisit, onboardingComplete: true }
+  const restored = parseState(JSON.stringify(completed))
+  assert.equal(restored.onboardingComplete, true)
+  assert.equal(restored.joined, firstVisit.joined)
+  assert.deepEqual(restored.settings, firstVisit.settings)
+  const afterSpin = beginDailyWorkout(restored, '2026-10-03', () => 0).state
+  assert.equal(parseState(JSON.stringify(afterSpin)).onboardingComplete, true)
+})
+
+test('existing saved members skip the new introduction without losing their progress', () => {
+  const legacy = beginDailyWorkout(initialState(), '2026-10-03', () => 0).state
+  delete legacy.onboardingComplete
+  const restored = parseState(JSON.stringify(legacy))
+  assert.equal(restored.onboardingComplete, true)
+  assert.deepEqual(restored.workouts, legacy.workouts)
+  assert.deepEqual(restored.settings, legacy.settings)
+  assert.equal(restored.name, legacy.name)
+})

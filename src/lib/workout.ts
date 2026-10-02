@@ -4,7 +4,7 @@ export type Pick = { exerciseId: string; amount: number; steps?: number }
 export type Workout = { date: string; picks: Pick[]; done: boolean[] }
 export type Range = { min: number; max: number }
 export type Settings = { enabled: string[]; ranges: Record<string, Range>; sound: boolean }
-export type ClubState = { version: 1; name: string; joined: string; settings: Settings; workouts: Workout[] }
+export type ClubState = { version: 1; name: string; joined: string; onboardingComplete: boolean; settings: Settings; workouts: Workout[] }
 
 export const CYCLING_DISTANCES = [1, 5, 10, 20] as const
 
@@ -48,7 +48,7 @@ export function previousDay(day: string): string {
 }
 
 export function initialState(): ClubState {
-  return { version: 1, name: 'Атлет', joined: localDate(), settings: { enabled: EXERCISES.filter(e => !e.equipment).map(e => e.id), ranges: {}, sound: false }, workouts: [] }
+  return { version: 1, name: 'Атлет', joined: localDate(), onboardingComplete: false, settings: { enabled: EXERCISES.filter(e => !e.equipment).map(e => e.id), ranges: {}, sound: false }, workouts: [] }
 }
 
 export function isComplete(workout?: Workout): boolean {
@@ -141,6 +141,8 @@ export function parseState(raw: string | null): ClubState {
       }), done: w.done.map((d: unknown) => d === true) })
     }
     const joined = [validDay(value.joined) ? value.joined : fallback.joined, fallback.joined, ...workouts.map(workout => workout.date)].sort()[0]
-    return { version: 1, name: name || fallback.name, joined, settings: { enabled: enabled.length ? enabled : fallback.settings.enabled, ranges, sound: value.settings?.sound === true }, workouts }
+    // Existing members have already visited the app; introduce settings only to new visitors.
+    const onboardingComplete = value.onboardingComplete !== false
+    return { version: 1, name: name || fallback.name, joined, onboardingComplete, settings: { enabled: enabled.length ? enabled : fallback.settings.enabled, ranges, sound: value.settings?.sound === true }, workouts }
   } catch { return fallback }
 }
