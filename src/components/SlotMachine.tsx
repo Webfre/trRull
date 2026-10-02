@@ -14,7 +14,7 @@ export default function SlotMachine({ workout, spinning, sound, onSpin, onSound,
   ]), [workout]) // The reel sequence stays fixed during an active spin.
 
   return <section className="roulette-section" aria-labelledby="roulette-title">
-    <div className="section-eyebrow"><span><span className="live-dot" />{workout ? completed ? 'ТРЕНИРОВКА ЗАКРЫТА' : 'ТВОЯ ТРЕНИРОВКА НА СЕГОДНЯ' : 'СЕГОДНЯ ЕСТЬ ОДНА ПОПЫТКА'}</span><button className="text-button help-button" onClick={onHelp}><CircleHelp size={15} />Как играть</button></div>
+    <div className="section-eyebrow"><button className="text-button help-button" onClick={onHelp}><CircleHelp size={15} />Как играть</button></div>
     <div className={`slot-machine ${spinning ? 'is-spinning' : ''} ${completed ? 'is-complete' : ''}`}>
       <span className="machine-screw screw-tl" /><span className="machine-screw screw-tr" /><span className="machine-screw screw-bl" /><span className="machine-screw screw-br" />
       <div className="machine-topline"><span className="machine-rule" /><span className="small-star">✦</span><span>NO PAIN, NO GAME</span><span className="small-star">✦</span><span className="machine-rule" /></div>

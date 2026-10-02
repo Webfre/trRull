@@ -129,10 +129,7 @@ export default function App() {
     </header>
 
     <main id="main" className="page-container">
-      <section className="page-heading">
-        <div><div className="eyebrow"><span className="short-rule" />ТВОЙ ЛИЧНЫЙ КЛУБ БЕЗ ОТГОВОРОК</div><h1>{view === 'workout' ? <>УДАЧА РЕШАЕТ. <span>ТЫ ДЕЛАЕШЬ.</span></> : <>КАЖДЫЙ ПОДХОД. <span>В ТВОЮ ПОЛЬЗУ.</span></>}</h1><p>{view === 'workout' ? 'Три случайных упражнения — и ты уже лучше, чем вчера.' : 'Большая привычка складывается из маленьких побед.'}</p></div>
-        <div className="daily-stamp" aria-label="Каждый день — новый шанс"><Star size={17} /><span>КАЖДЫЙ ДЕНЬ</span><strong>НОВЫЙ ШАНС</strong><div>★ ★ ★</div></div>
-      </section>
+      <h1 className="sr-only">{view === 'workout' ? 'Тренировка' : 'Профиль'}</h1>
 
       <div className="dashboard-grid">
         <aside className="profile-sidebar">
