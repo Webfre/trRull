@@ -1,0 +1,23 @@
+Asset: public/assets/coach.png
+Tool: built-in imagegen
+Output: 1122 × 1402 PNG with alpha transparency
+
+Original character generation prompt:
+
+Use case: illustration-story
+Asset type: One original cartoon mascot raster image for a narrow retro gym roulette website poster card.
+Primary request: A funny, friendly muscular old-school gym coach and bodybuilder cartoon character, full-body, thick dark moustache, red headband, cream tank top with red trim, vintage red gym shorts, huge exaggerated muscular arms. One arm is raised in a flexing pose and the other hand gives a clear thumbs-up. Joyful confident smile.
+Style/medium: 1930s rubber-hose cartoon character design meets 1970s gym T-shirt screenprint. Thick imperfect black ink outlines, flat cream/red/charcoal palette, subtle distressed halftone printing texture. Charming, playful and bold.
+Composition/framing: Vertical 4:5 portrait image, full body with feet safely inside frame and generous margin around the clear silhouette. Face in the top third. Strong readable shapes at 280 pixels display width.
+Scene/backdrop: Isolated on a completely flat light warm cream background, color #eeeadf. No gym scene or surrounding objects.
+Constraints: Exactly one original character and one image. No text, no type, no lettering, no logo, no watermark, no borders, no UI. Not a celebrity likeness.
+
+Final background-removal prompt:
+
+Use case: background-extraction
+Asset type: Transparent PNG character cutout for website icon insertion.
+Input image: The existing original cartoon gym coach character is the edit target.
+Primary request: Remove only the flat cream background to actual alpha transparency. Preserve exactly the same full-body cartoon character, pose, face, moustache, hair, red headband, cream tank top with red trim, red shorts, red shoes, skin colors, proportions, thick dark outlines, and distressed print texture.
+Invariants: Keep all character details, color fills, linework, expression, raised flexing arm, thumbs-up hand, legs and shoes unchanged. Cream areas inside the tank top, socks and shoes are parts of the character and must remain opaque.
+Composition: Keep the full body and all extremities safely inside the image with the existing framing.
+Constraints: Genuinely transparent background, no cream canvas, no scenery, no floor, no drop shadow, no fake checkerboard or transparency pattern baked into the pixels, no text, no logo, no watermark. Exactly one edit.
