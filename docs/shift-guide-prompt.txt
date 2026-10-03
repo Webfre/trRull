@@ -1,0 +1,13 @@
+Generated with the built-in image_gen tool.
+Reference: public/assets/coach.png
+Output: public/assets/shift-guide.png
+Layout: 2 by 2 instruction panels; each square panel is displayed with CSS background positioning.
+
+Use case: infographic-diagram.
+Asset type: four-panel illustrated instruction sheet for a mobile exercise break game called Сдвиг.
+Input image is a character/style reference only. Create a NEW illustration using the same friendly vintage cartoon male fitness coach: dark wavy hair, large mustache, red headband, cream sleeveless shirt with red trim, red shorts, white socks and red trainers. Match warm paper, dark ink outlines, light print texture.
+Composition: a square image split into an EXACT borderless 2 by 2 grid with four equally sized square panels. Plain uniform pale warm cream background #f8f5ec. Leave generous safe margins in each panel. No words, letters, numbers, titles, logos or captions. Only simple red directional arrows. All characters entirely within their own panel.
+Top-left: full-body coach standing neutrally with feet comfortably apart and soft knees, holding one SMALL clear water bottle horizontally in BOTH hands close in front of chest. A phone on a simple stable waist-high stand is at his side in foreground, angled toward him, its screen displaying one large UP arrow.
+Top-right: full-body coach making a SMALL relaxed turn of chest and hips together toward image right, both hands holding same small bottle close at lower chest, feet allowing a gentle pivot. Simple red horizontal right arrow beside chest.
+Bottom-left: full-body coach holding the same small bottle with both hands close in front of his upper chest, elbows bent, shoulders relaxed. A red vertical double-ended up/down arrow alongside hands indicates movement between waist and upper chest, NEVER overhead. Small faint dashed bottle outline at waist to show the lower position.
+Bottom-right: full-body coach making a SMALL gentle turn toward image left, holding same small bottle with both hands close near upper chest, with a red diagonal up-left arrow beside torso. No extreme back bending, no deep twisting, no heavy weights. Friendly relaxed expressions, schematic and immediately readable at phone size.

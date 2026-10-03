@@ -224,3 +224,17 @@ svg { flex-shrink: 0; }
   .progress-summary > div:nth-child(2) { border-right: 0; }
   .progress-summary > div:nth-child(n + 3) { border-top: 1px solid var(--line); }
 }
+
+.next-spin-label small { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.5; letter-spacing: 0; }
+
+/* Four destinations keep full-size touch targets on narrow phones. */
+@media (min-width: 761px) and (max-width: 980px) {
+  .site-header { column-gap: 16px; }
+  .main-nav { gap: 14px; }
+  .header-profile > span:nth-child(2) { display: none; }
+}
+@media (max-width: 760px) {
+  .main-nav { gap: 4px; height: 62px; }
+  .main-nav button { flex-direction: column; gap: 4px; min-width: 0; padding: 9px 2px; font-size: 12px; }
+  .main-nav button svg { width: 18px; height: 18px; }
+}

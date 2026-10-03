@@ -1,0 +1,131 @@
+.shift-page { --shift-night: #171d18; --shift-light: #f1e8ba; max-width: 920px; margin: 32px auto 56px; }
+.shift-page-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--ink); }
+.shift-page-heading h1 { display: flex; align-items: center; gap: 12px; font: 500 clamp(30px, 4vw, 38px) var(--heading); }
+.shift-page-heading h1 svg { color: var(--red); }
+.shift-page-heading > span { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: #666658; text-align: right; }
+.shift-eyebrow { display: block; color: var(--red); font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; }
+.shift-page h2 { font: 500 clamp(30px, 4vw, 43px)/1.17 var(--heading); margin: 12px 0 18px; }
+.shift-page h2:focus { outline: none; }
+.shift-page .shift-primary { gap: 10px; min-height: 50px; background: var(--red); border-color: var(--red-dark); }
+.shift-page .shift-primary:hover { background: var(--red-dark); }
+.shift-welcome { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 48px; align-items: center; padding: 40px 30px; }
+.shift-welcome-coach img { width: 100%; height: auto; max-height: 410px; object-fit: contain; }
+.shift-welcome-copy > p, .shift-tutorial-copy > p, .shift-setup > p { color: #656657; font-size: 17px; line-height: 1.6; }
+.shift-welcome-facts { display: flex; flex-wrap: wrap; gap: 10px 22px; margin: 23px 0; font-size: 14px; }
+.shift-welcome-facts span { display: flex; align-items: center; gap: 7px; }
+.shift-welcome-copy > .shift-small { margin-top: 16px; font-size: 12px; }
+.shift-tutorial { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 36px; align-items: center; padding: 35px 0; }
+.shift-guide-image { aspect-ratio: 1; width: 100%; background-size: 200% 200%; background-repeat: no-repeat; background-color: var(--paper-light); border: 1px solid var(--line); }
+.shift-step-top { display: flex; align-items: center; gap: 15px; justify-content: space-between; }
+.shift-step-top > span:last-child { color: #656657; white-space: nowrap; font-variant-numeric: tabular-nums; font-size: 13px; }
+.shift-step-progress { display: flex; gap: 7px; margin: 25px 0; }
+.shift-step-progress span { height: 3px; flex: 1; background: var(--line); }
+.shift-step-progress .is-read { background: var(--red); }
+.shift-tutorial-actions { display: flex; justify-content: space-between; gap: 10px; }
+.shift-tutorial-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 48px; padding: 12px 17px; }
+.shift-lobby { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 40px; padding: 32px 0; align-items: stretch; }
+.shift-poster { background: var(--shift-night); color: var(--shift-light); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px 22px; min-height: 480px; overflow: hidden; position: relative; }
+.shift-poster > span { font-size: 10px; letter-spacing: 2.2px; }
+.shift-poster > strong { font: 600 clamp(66px, 8vw, 108px)/1 var(--heading); letter-spacing: -2px; margin: 15px 0 13px; }
+.shift-poster > small { font-size: 15px; color: #c0c7b8; }
+.shift-poster-arrows { position: relative; width: 240px; max-width: 100%; height: 230px; margin-top: 25px; }
+.shift-poster-arrows svg { position: absolute; stroke-width: 3.5px; }
+.shift-poster-arrows svg:nth-child(1) { width: 70px; height: 70px; left: 1%; top: 67%; opacity: .16; }
+.shift-poster-arrows svg:nth-child(2) { width: 125px; height: 125px; left: 12%; top: 31%; opacity: .38; }
+.shift-poster-arrows svg:nth-child(3) { width: 205px; height: 205px; left: 18%; top: -2%; }
+.shift-setup { padding: 5px 0; }
+.shift-setup > p { font-size: 16px; }
+.shift-options { border: 0; margin: 22px 0 0; padding: 0; min-width: 0; }
+.shift-options legend { font-size: 14px; font-weight: 700; margin-bottom: 10px; padding: 0; }
+.shift-options > div { display: flex; gap: 8px; }
+.shift-options button { flex: 1; min-width: 0; min-height: 48px; padding: 10px; font-size: 21px; border: 1px solid var(--line); background: transparent; }
+.shift-options button > span { font-size: 13px; }
+.shift-options button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper-light); }
+.shift-options button:hover { border-color: var(--ink); }
+.shift-tempo button { font-size: 16px; text-align: left; padding: 11px 14px; }
+.shift-tempo button small { display: block; font-size: 12px; margin-top: 4px; }
+.shift-setup > .shift-pace-note { font-size: 12px; margin: 10px 0 20px; }
+.shift-start { width: 100%; display: flex; justify-content: center; min-height: 55px; }
+.shift-start > svg:last-child { margin-left: auto; }
+.shift-setup > .shift-start-hint { text-align: center; font-size: 12px; margin-top: 10px; }
+.shift-reminder { display: flex; gap: 18px; align-items: center; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 18px 0; }
+.shift-reminder > img { width: 56px; height: 76px; object-fit: contain; flex-shrink: 0; }
+.shift-reminder > div { flex: 1; }
+.shift-reminder strong { font-size: 15px; }
+.shift-reminder p { color: #656657; font-size: 13px; line-height: 1.55; margin-top: 5px; max-width: 570px; }
+.shift-reminder button { display: flex; justify-content: center; align-items: center; gap: 8px; background: transparent; font-size: 13px; min-height: 44px; padding: 9px 12px; white-space: nowrap; }
+.shift-reminder button:hover { background: #e2dece; }
+.shift-direction-strip { display: flex; justify-content: center; gap: clamp(15px, 3vw, 30px); padding-top: 21px; font-size: 25px; color: var(--green); }
+.shift-footnote { text-align: center; font-size: 12px; color: #656657; line-height: 1.5; margin-top: 10px; }
+.shift-storage-warning { font-size: 13px; color: var(--red-dark); margin-top: 20px; }
+
+/* Native dialog provides focus containment and isolates the game from the page.
+   Viewport sizing also works when the browser cannot enter native fullscreen. */
+.shift-session { position: fixed; inset: 0; margin: 0; padding: 0; border: 0; max-width: none; max-height: none; width: 100%; height: 100%; height: 100dvh; background: var(--shift-night); color: var(--shift-light); overflow: auto; overscroll-behavior: contain; }
+.shift-session::backdrop { background: #171d18; }
+.shift-screen { position: relative; width: 100%; height: 100%; background: var(--shift-night); overflow: auto; }
+.shift-screen:fullscreen { width: 100%; height: 100%; }
+.shift-playfield { display: grid; place-items: center; position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; background: var(--shift-night); color: var(--shift-light); perspective: 700px; overflow: hidden; cursor: pointer; touch-action: manipulation; }
+.shift-playfield:focus-visible { outline: 2px solid #c1c7ac; outline-offset: -6px; }
+.shift-flying-arrow { display: block; width: min(78vw, 78dvh, 700px); height: min(78vw, 78dvh, 700px); fill: currentColor; will-change: transform, opacity; transform: translateZ(-3000px); }
+.shift-session-panel { display: flex; flex-direction: column; justify-content: center; align-items: center; width: min(100%, 500px); min-height: 100%; margin: 0 auto; padding: max(30px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(30px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left)); text-align: center; }
+.shift-session-panel h2 { color: var(--shift-light); font: 500 clamp(40px, 8vw, 58px)/1.15 var(--heading); margin: 10px 0 20px; }
+.shift-session-panel p { font-size: 16px; line-height: 1.55; max-width: 380px; color: #c4cbbb; }
+.shift-session-panel .shift-session-kicker { margin-top: 22px; font-size: 12px; }
+.shift-session-panel .shift-session-caption { font-size: 13px; margin-top: 10px; }
+.shift-dark-primary, .shift-dark-secondary { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; width: min(100%, 320px); padding: 12px 20px; border: 1px solid #596453; border-radius: 2px; background: transparent; color: var(--shift-light); font-size: 16px; }
+.shift-dark-primary { background: var(--shift-light); color: var(--shift-night); border-color: var(--shift-light); margin-top: 30px; }
+.shift-dark-primary:hover { background: #fff6cc; }
+.shift-dark-secondary { margin-top: 12px; }
+.shift-dark-secondary:hover { background: #2c352b; }
+.shift-session-panel > small { color: #afb8a8; font-size: 12px; line-height: 1.5; margin-top: 22px; }
+.shift-countdown > strong { font: 500 clamp(110px, 28vmin, 200px)/1.2 var(--heading); margin: 10px 0; font-variant-numeric: tabular-nums; }
+.shift-countdown > .shift-dark-secondary { margin-top: 25px; }
+.shift-finish-mark { display: grid; place-items: center; width: 70px; height: 70px; border: 1px solid #75836b; border-radius: 50%; }
+
+@media (max-width: 760px) {
+  .shift-page { margin-top: 24px; }
+  .shift-welcome { gap: 25px; padding: 30px 0; grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); }
+  .shift-lobby { gap: 25px; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
+  .shift-poster { padding: 24px 15px; }
+  .shift-poster > span { font-size: 8px; letter-spacing: 1.2px; }
+  .shift-poster-arrows { transform: scale(.85); }
+  .shift-tutorial { gap: 24px; }
+  .shift-tutorial-copy > p { font-size: 16px; }
+}
+@media (max-width: 580px) {
+  .shift-page-heading { padding-bottom: 15px; }
+  .shift-page-heading > span { max-width: 100px; font-size: 10px; line-height: 1.5; }
+  .shift-welcome { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 22px 0; }
+  .shift-welcome-coach { height: 190px; }
+  .shift-welcome-coach img { height: 100%; }
+  .shift-welcome-copy > p { font-size: 16px; }
+  .shift-welcome-copy > .shift-primary { width: 100%; justify-content: center; }
+  .shift-welcome-facts { margin: 18px 0; }
+  .shift-tutorial { grid-template-columns: minmax(0, 1fr); padding: 22px 0; gap: 22px; }
+  .shift-guide-image { max-width: 300px; width: min(100%, 64svh); justify-self: center; }
+  .shift-tutorial h2 { font-size: 29px; margin: 10px 0 12px; }
+  .shift-step-progress { margin: 20px 0; }
+  .shift-lobby { grid-template-columns: minmax(0, 1fr); gap: 23px; padding-top: 22px; }
+  .shift-poster { min-height: 0; height: 170px; align-items: flex-start; padding: 22px; }
+  .shift-poster > strong { font-size: 66px; margin: 14px 0 8px; }
+  .shift-poster > small { font-size: 13px; }
+  .shift-poster > span { font-size: 8px; }
+  .shift-poster-arrows { position: absolute; width: 165px; height: 165px; right: 2px; top: 0; margin: 0; transform: scale(.6); transform-origin: center; }
+  .shift-poster-arrows svg:nth-child(3) { width: 170px; height: 170px; }
+  .shift-setup { padding: 0; }
+  .shift-setup h2 { font-size: 34px; }
+  .shift-reminder { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 8px 14px; }
+  .shift-reminder > img { width: 44px; height: 68px; }
+  .shift-reminder button { grid-column: 2; justify-self: start; padding-left: 0; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .shift-session-panel { padding-top: 20px; padding-bottom: 20px; }
+  .shift-countdown > strong { font-size: 90px; margin: 0; }
+  .shift-session-panel h2 { font-size: 35px; margin: 6px 0 12px; }
+  .shift-session-panel .shift-session-kicker { margin-top: 10px; }
+  .shift-dark-primary { margin-top: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shift-flying-arrow { transform: none !important; opacity: 1 !important; will-change: auto; }
+}
